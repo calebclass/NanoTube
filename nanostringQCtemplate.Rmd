@@ -1,0 +1,287 @@
+---
+title: "NanoString QC Template"
+author: "Caleb A Class"
+runtime: shiny
+output: html_document
+---
+
+<style>
+.col2 {
+  columns: 2 200px;         /* number of columns and width in pixels*/
+  -webkit-columns: 2 200px; /* chrome, safari */
+  -moz-columns: 2 200px;    /* firefox */
+}
+.column-left{
+  float: left;
+  width: 67%;
+  text-align: left;
+}
+.column-right{
+  float: right;
+  width: 33%;
+  text-align: right;
+}
+</style>
+
+
+
+```{r userInput, include = FALSE, echo = FALSE}
+# This is the only part to be edited by the standard user. Advanced users might want to adjust
+# normalization or analysis parameters in 2nd code block.
+
+# The folder containing .RCC files (can also be .zip folder)
+file.folder <- "Y:/R/CCCT/CC04_ICC/nanoStringData/ccct/20180821_207801540819_RCC.ZIP"
+
+# Housekeeping genes for normalization (if NULL, will use genes marked as housekeeping in
+# .RCC files)  --> housekeeping table in quickbase
+hk.genes <- c("Alas1", "Abcf1", "Tbp", "Ppia", "Tubb5")
+
+# Group identifiers (treatment/etc.). Can be manual input or from file.
+# If manual, they must be the same length and in the same order as files in folder (careful!).
+# If NULL, they will be obtained from file names (must be between a space and an underscore). This works
+# for lung_ms data, we can revisit when we have standardized file/sample names.
+groups <- NULL
+
+# The standard analysis will compare all treatment groups against vehicle (the "base.group", which must
+# be one of the "groups").
+base.group <- "Vehicle"
+
+```
+
+```{r loadAndAnalyze, include = FALSE, cache = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.height = 4, fig.width = 5)
+
+# in NanoTube folder:
+#devtools::install(".")
+library(rlang)
+library(Biobase)
+library(limma)
+library(plotly)
+library(ggplot2)
+library(NanoTube)
+
+nanostringData <- processNanostringData(file.folder,
+                             bgType = "t.test", bgPVal = 0.001, #maybe use 0.01
+                             housekeeping = hk.genes,
+                             includeQC = TRUE)
+
+# This is only to generate background data for the QC report
+nanostringDataBG <- processNanostringData(file.folder,
+                             bgType = "threshold", bgThreshold = 2, bgProportion = 0.5,
+                             housekeeping = hk.genes,
+                             includeQC = TRUE)
+
+colnames(nanostringData$exprs) <- 
+  colnames(nanostringData$exprs.raw) <-
+  names(nanostringData$pc.scalefactors) <-
+  names(nanostringData$hk.scalefactors) <-
+  colnames(nanostringData$qc) <- 
+  rownames(nanostringDataBG$bg.stats) <-
+  substr(colnames(nanostringData$exprs), start=34, stop=41)
+
+if (is.null(groups)) groups <- ""
+
+#limmaResults <- runLimmaAnalysis(nanostringData, groups, base.group)
+#makeDiffExprFile(limmaResults, base.group, filename = NULL)
+
+# q-value calculated by benjamini-hochberg, not accurate for pathway analysis since pathways aren't independent
+# (fgsea also does this)
+#genesetResults <- mHG.genesets.multi(limmaResults, geneset.file, file.type = "rds", 
+#                               t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
+
+
+```
+
+# {.tabset}
+
+`r sum(nanostringData$dict$CodeClass == "Endogenous")` of `r sum(nanostringData$dict.raw$CodeClass == "Endogenous")` endogenous genes were detected significantly above the negative control genes. QC statistics are provided in the figures and tables below, along with a principal components analysis. 
+
+## Positive Controls
+
+```{r positivePrep, include = FALSE}
+
+# Observed vs. Expected for positive control genes
+
+dat.pos <- as.data.frame(log2(nanostringData$exprs.raw[nanostringData$dict.raw$CodeClass == "Positive",]))
+dat.pos$Expected <- log2(as.numeric(gsub(".*\\(|\\)", "", nanostringData$dict.raw$Name[nanostringData$dict.raw$CodeClass == "Positive"])))
+
+dat.pos.df <- reshape::melt(dat.pos, "Expected")
+colnames(dat.pos.df)[2:3] <- c("Sample", "Observed")
+
+samps <- unique(dat.pos.df$Sample)
+xmin <- min(dat.pos.df$Expected)
+xmax <- max(dat.pos.df$Expected)
+ymax <- max(dat.pos.df$Observed)
+
+pos1 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[1:3],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos2 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[4:6],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos3 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[7:9],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos4 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[10:12],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+
+# Scale factor table
+pos.tab <- data.frame(Sample = names(nanostringData$pc.scalefactors),
+                      `Scale Factor` = round(nanostringData$pc.scalefactors, 2))
+
+```
+
+<div class="column-left">
+```{r positivePlot, fig.width = 8, fig.height = 6}
+multiplot(pos1, pos2, pos3, pos4, cols=2)
+```
+</div>
+
+<div class="column-right">
+```{r positiveTable}
+knitr::kable(pos.tab, padding=2, format="html", row.names = FALSE) %>%
+  kableExtra::kable_styling(full_width = F)
+```
+</div>
+
+## Negative Controls
+```{r negativePrep, include = FALSE}
+# Strip plot for negative control genes
+dat.neg <- as.data.frame(nanostringData$exprs.raw[nanostringData$dict.raw$CodeClass == "Negative",])
+dat.neg$Gene <- nanostringData$dict.raw$Name[nanostringData$dict.raw$CodeClass == "Negative"]
+
+dat.neg.df <- reshape::melt(dat.neg, "Gene")
+colnames(dat.neg.df)[2:3] <- c("Sample", "Count")
+
+
+# Negative Table
+neg.tab <- round(nanostringDataBG$bg.stats[,1:4], 2)
+neg.tab$fail <- paste0(nanostringDataBG$bg.stats$num.less.bg, " (",
+                       round(nanostringDataBG$bg.stats$frc.less.bg*100, 1), "%)")
+colnames(neg.tab) <- c("Mean (Neg)", "Max (Neg)", "sd (Neg)", "BG (Mean+2sd)", 
+                       "Genes below BG (%)")
+
+```
+
+```{r negativeTable}
+knitr::kable(neg.tab, padding=2, format="html", row.names = TRUE, align='ccccc') %>%
+  kableExtra::kable_styling(full_width = F, position = "center")
+```
+
+```{r negativePlot, fig.width = 7, fig.height = 5}
+neg1 <- ggplot(data = dat.neg.df, aes(x=Count, y=Sample, 
+                                      text=paste0("Sample: ", Sample, "\nGene: ", Gene, "\nCount: ", Count))) +
+  geom_jitter(height = 0.2, width = 0, colour = "black", fill = "grey70", pch=21) +
+  theme_classic() + ylab("") 
+
+div(ggplotly(neg1, tooltip = c("text"), width = 550, height = 400) %>% 
+      layout(margin = list(l=90), autosize = FALSE), 
+    align="center")
+
+```
+
+## Housekeeping & Summary
+
+```{r hkPrep, include = FALSE}
+
+# Scale factor table
+hk.tab <- data.frame(Sample = names(nanostringData$hk.scalefactors),
+                      `Scale Factor` = round(nanostringData$hk.scalefactors, 2))
+
+```
+
+<div class="column-left">
+```{r box1, fig.cap = "Boxplot of log2-transformed raw counts of endogenous genes."}
+boxplot.dat <- as.data.frame(log2(nanostringData$exprs.raw+0.5))
+boxplot.dat$CodeClass <- nanostringData$dict.raw$CodeClass
+boxplot.df <- reshape::melt(boxplot.dat, "CodeClass")
+
+b1 <- ggplot() +
+  geom_boxplot(data=boxplot.df[boxplot.df$CodeClass == "Endogenous",], 
+               aes(x=variable, y=value), fill="grey70") + 
+  theme_classic() + xlab("") + ylab("log2(counts+0.5)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplotly(b1) %>% 
+      layout(margin = list(b=90))
+```
+
+```{r box2, fig.cap = "Boxplot of log2-transformed normalized counts of endogenous genes."}
+# boxplot of normalized expression levels
+
+boxplot.dat <- log2(nanostringData$exprs[nanostringData$dict$CodeClass == "Endogenous",]+0.5)
+boxplot.df <- reshape::melt(boxplot.dat)
+
+samp.df <- data.frame(sample = rep(colnames(boxplot.dat),times=2),
+                      scaleFactor = c(rep("Positive Control", times=ncol(boxplot.dat)), rep("Housekeeping", times=ncol(boxplot.dat))),
+                      dat = c(nanostringData$pc.scalefactors,
+                      hk.scaleFactor = nanostringData$hk.scalefactors))
+
+b2 <- ggplot() +
+  geom_boxplot(data=boxplot.df, aes(x=X2, y=value), fill="grey70") + 
+  theme_classic() + xlab("") + ylab("log2(counts+0.5)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplotly(b2) %>% 
+      layout(margin = list(b=90))
+```
+
+</div>
+
+<div class="column-right">
+```{r hkTable}
+knitr::kable(hk.tab, padding=2, format="html", row.names = FALSE) %>%
+  kableExtra::kable_styling(full_width = F) 
+```
+</div>
+
+
+## PCA
+
+```{r pca, fig.cap = "Principal components analysis, using normalized expression of all genes passing background."}
+
+pca.dat <- log2(nanostringData$exprs[nanostringData$dict$CodeClass == "Endogenous" &
+                                        rowSums(nanostringData$exprs == 0) == 0,]+0.5)
+
+pca <- prcomp(t(pca.dat),
+              center = TRUE, scale = TRUE)
+pca.ly <- as.data.frame(pca$x[,1:2])
+pca.ly$sample <- row.names(pca$x)
+pca.ly$group <- groups
+
+perc.var <- pca$sdev^2 / sum(pca$sdev^2) * 100
+
+layout.x <- layout.y <- list(
+  showline = TRUE,
+  showticklabels = TRUE,
+  showgrid = FALSE,
+  zeroline = FALSE,
+  linecolor = toRGB("black"),
+  linewidth = 1
+)
+
+layout.x$title <- paste0("PC1 (", signif(perc.var[1], 2), "% var)")
+layout.y$title <- paste0("PC2 (", signif(perc.var[2], 2), "% var)")
+
+plot_ly(data = pca.ly, x = ~PC1, y = ~PC2,
+        text = ~paste0("Sample: ", sample), color = ~group,
+        type = "scatter", mode = "markers") %>%
+  layout(xaxis = layout.x, yaxis = layout.y)
+
+
+#library(ggplot2)
+#qplot(pca$x[,1], pca$x[,2], 
+#      colour = limmaResults$sampleData$group) + 
+#  xlab(paste("PC1 (", signif(perc.var[1], 2), "% var)", sep = "")) + 
+#  ylab(paste("PC2 (", signif(perc.var[2], 2), "% var)", sep = "")) +
+#  labs(col = "Group") 
+
+
+```
+
+

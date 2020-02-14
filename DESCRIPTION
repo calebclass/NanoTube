@@ -1,0 +1,14 @@
+Package: NanoTube
+Type: Package
+Title: An Easy Pipeline for NanoString nCounter Data Analysis
+Version: 0.1.0
+Author: Caleb A. Class
+Maintainer: Caleb A. Class <caclass@mdanderson.org>
+Imports: rlang, Biobase, ggplot2, limma, plotly, knitr, kableExtra, reshape, grid, mHG
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Suggests: testthat
+RoxygenNote: 6.0.1
