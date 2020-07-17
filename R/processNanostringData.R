@@ -3,8 +3,18 @@
 #' This function reads in a zip file or folder containing multiple .rcc files, and then conducts positive
 #' control normalization, background correction, and housekeeping normalization.
 #'
-#' @param fileDirs file directory (or zip file) containing the .rcc files, or multiple directories in
-#' a character vector.
+#' @param fileDirs file path (or zip file) containing the .rcc files, or multiple directories in
+#' a character vector, or a single text/csv file containing the combined counts.
+#' @param sampleTab .txt (tab-delimited) or .csv (comma-delimited) file containing sample data
+#' table (optional, default NULL)
+#' @param idCol the column name of the sample identifiers in the sample table,
+#' which should correspond to the column names in the count table 
+#' (default NULL: will assume the first column contains the sample identifiers)
+#' @param groupCol the column name of the group identifiers in the sample table (required
+#' if sampleTab is provided).
+#' @param replicateCol the column name of the replicate identifiers (default
+#' NULL). Multiple replicates of the same sample will have the same value in 
+#' this column.
 #' @param bgType type of background correction to use: "threshold" sets a thresold for N standard deviations
 #' above the mean of negative controls. "t.test" conducts a one-sided t test for each gene against all
 #' negative controls.
@@ -19,15 +29,17 @@
 #' @param housekeeping vector of genes (symbols or accession) to use for housekeeping correction. If NULL,
 #' will use genes listed in .rcc files as "Housekeeping"
 #' @param skip.housekeeping Skip housekeeping normalization? (default FALSE)
-#' @param includeQC Should we include the QC when reading in .rcc files? This can cause errors,
+#' @param includeQC Should we include the QC from the .rcc files? This can cause errors,
 #' particularly when reading in files from multiple experiments.
 #' @param sampIds a vector of sample identifiers, important if there are technical replicates.
-#' Currently, this function averages technical replicates.
+#' Currently, this function averages technical replicates. sampIds will be extracted
+#' from the replicateCol in the sampleTab, if provided.
 #' @param logfile a filename for the logfile (optional). If blank, will print warnings to screen.
 #'
 #' @return An rds file containing the raw and normalized counts, sample and qc info (from rcc files), and dictionary
 
 processNanostringData <- function(fileDirs,
+                                  sampleTab = NULL, idCol = NULL, groupCol = NULL, replicateCol = NULL,
                                   bgType = c("threshold", "t.test"),
                                   bgThreshold = 3, bgProportion = 0.5, bgPVal = 0.001, bgSubtract = FALSE,
                                   housekeeping = NULL, skip.housekeeping = FALSE,
@@ -37,31 +49,71 @@ processNanostringData <- function(fileDirs,
 
   # Quick error checking:
   if (bgThreshold < 0) {
-    warning(cat("Negative background threshold detected. This is the number of \n
+    warning(cat("\nNegative background threshold detected. This is the number of \n
                 standard deviations above the background mean, and should be \n
                 0 or positive. Setting to 0...\n", file=logfile, append=TRUE))
     bgThreshold <- 0
   }
   if (bgProportion < 0 | bgProportion > 1) {
-    stop(cat("Proportion should be between 0 and 1, the proportion of samples \n
+    stop(cat("\nProportion should be between 0 and 1, the proportion of samples \n
              that must have greater expression than background to keep for \n
              analysis. Stopping...\n", file=logfile, append=TRUE))
   }
 
-  # Extract from fileDirs, if zipped
-  if (substr(fileDirs[1], (nchar(fileDirs[1])-3), nchar(fileDirs[1])) %in% c(".zip", ".ZIP")){
-    fileDirs <- unzip.dirs(fileDirs)
+  file.extension <- substr(fileDirs[1], (nchar(fileDirs[1])-3), nchar(fileDirs[1]))
+  
+  # Read in expression data from individual rcc files, 
+  # or merged txt or csv files.
+  
+  if (file.extension %in% c(".txt", ".TXT", ".csv", ".CSV")) {
+    
+    # Read in merged count data
+    if (file.extension %in% c(".txt", ".TXT")) {
+      tabData <- read.delim(fileDirs,
+                            stringsAsFactors = FALSE)
+    } else {
+      tabData <- read.csv(fileDirs,
+                          stringsAsFactors = FALSE)
+    }
+    
+    dat <- list(exprs = tabData[,-(1:3)],
+                dict = tabData[,1:3])
+    rownames(dat$exprs) <- rownames(dat$dict) <- tabData$Accession
+    
+    # Remove periods or spaces from dictionary colnames
+    colnames(dat$dict) <- gsub("\\.| ", "", colnames(dat$dict))
+    
+    
+  } else {
+    
+    # Extract from fileDirs, if zipped
+    if (file.extension %in% c(".zip", ".ZIP")){
+      fileDirs <- unzip.dirs(fileDirs)
+    }
+    
+    # Get filenames (combines files from multiple directories if necessary)
+    fileNames <- c(sapply(fileDirs, list.files, full.names = TRUE))
+    
+    cat("\n---Running processNanostringData.R ---\nReading in .RCC files......\n",
+        file=logfile, append=TRUE)
+    
+    # Read in .rcc files
+    dat <- read.merge.rcc(fileNames, includeQC, logfile)
   }
-
-  # Get filenames (combines files from multiple directories if necessary)
-  fileNames <- c(sapply(fileDirs, list.files, full.names = TRUE))
-
-  cat("---Running processNanostringData.R ---\nReading in .RCC files......",
-      file=logfile, append=TRUE)
-  # Read in .rcc files
-  dat <- read.merge.rcc(fileNames, includeQC, logfile)
-
+  
+  # Read in sample data file, if provided.
+  if (!is.null(sampleTab)) {
+    dat <- read.sampleData(dat, file.name = sampleTab,
+                           idCol = idCol, groupCol = groupCol, replicateCol = replicateCol)
+  }
+  
   # Average counts for technical replicates
+  # Use the replicate ID's extracted from the sampleTab, if applicable.
+  if ("replicates" %in% names(dat)) {
+    sampIds <- dat$replicates
+  }
+  
+  # Or use the ID's provided directly.
   if (!is.null(sampIds) & any(duplicated(sampIds))) {
     dupSamps <- names(table(sampIds)[table(sampIds) > 1])
     for (i in dupSamps) {
@@ -69,20 +121,21 @@ processNanostringData <- function(fileDirs,
     }
     # Remove duplicates
     dat$exprs <- dat$exprs[,!duplicated(sampIds)]
-    dat$samples <- dat$samples[,!duplicated(sampIds)]
+    dat$samples <- dat$samples[!duplicated(sampIds),]
     if (includeQC) dat$qc <- dat$qc[,!duplicated(sampIds)]
+    if ("groups" %in% names(dat)) dat$groups <- dat$groups[!duplicated(sampIds)]
   }
 
   # Mark specified genes as housekeeping (may already be marked)
   dat$dict$CodeClass[dat$dict$Name %in% housekeeping | dat$dict$Accession %in% housekeeping] <- "Housekeeping"
 
   # Normalize positive controls
-  cat("Calculating positive scale factors......",
+  cat("\nCalculating positive scale factors......\n",
       file=logfile, append=TRUE)
   dat.norm <- normalize.pos.controls(dat, logfile)
 
   # Remove genes that fail background check
-  cat("Checking endogenous genes against background threshold......",
+  cat("\nChecking endogenous genes against background threshold......\n",
       file=logfile, append=TRUE)
   #if (bgType == "threshold"){
   #  dat.norm <- remove.background(dat.norm, mode=bgType, numSD = bgThreshold, proportionReq = bgProportion, subtract)

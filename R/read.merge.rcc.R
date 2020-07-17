@@ -18,12 +18,12 @@ read.merge.rcc <- function(fileList, includeQC = FALSE, logfile = "") {
   cat("Checked gene name consistency in .RCC files.", file=logfile, append=TRUE)
 
   merged.dat <- list(exprs = sapply(dat, function(X) X[[1]][,4]),
-                     dict = dat[[1]][[1]][,1:3],
-                     samples = cbind(dat[[1]][[2]][,1], sapply(dat, function(X) X[[2]][,2])))
+                     dict = dat[[1]][[1]][,1:3])
+  #                   samples = cbind(dat[[1]][[2]][,1], sapply(dat, function(X) X[[2]][,2])))
   #                     qc = cbind(dat[[1]][[3]][,1], sapply(dat, function(X) X[[3]][,2])))
   rownames(merged.dat[[1]]) <- merged.dat$dict[,3]
   colnames(merged.dat[[1]]) <- gsub(".*\\/", "", fileList)
-  colnames(merged.dat[[3]]) <- c(colnames(dat[[3]][[1]])[1], gsub(".*\\/", "", fileList))
+  #colnames(merged.dat[[3]]) <- c(colnames(dat[[3]][[1]])[1], gsub(".*\\/", "", fileList))
 
   if (any(merged.dat$dict$CodeClass == "Housekeeping")) {
     cat(paste(sum(merged.dat$dict$CodeClass == "Housekeeping")), "genes labeled as 'housekeeping'.",

@@ -51,15 +51,15 @@ remove.background <- function(dat,
                                  pass = rep(NA, times=length(dat$dict$Name)))
     
     rowsKeep <- ifelse(dat$dict$CodeClass == "Endogenous", yes = FALSE, no = TRUE)
-    background <- c(dat$exprs[dat$dict$CodeClass == "Negative",])
-    pvalvec <- c()
+    background <- unlist(dat$exprs[dat$dict$CodeClass == "Negative",])
+#    pvalvec <- c()
     
     for (i in which(dat$dict$CodeClass == "Endogenous")){
       ttest <- t.test(x = dat$exprs[i,], y = background, var.equal = FALSE, alternative = "greater")
       if (ttest$p.value < pval) {
         rowsKeep[i] <- TRUE
       }
-      pvalvec <- c(pvalvec, ttest$p.value)
+#      pvalvec <- c(pvalvec, ttest$p.value)
       dat$gene.stats$t.stat[i] <- as.numeric(ttest$statistic)
       dat$gene.stats$p.val[i] <- ttest$p.value
     }
