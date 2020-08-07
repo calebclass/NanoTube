@@ -1,9 +1,10 @@
 #' Process NanoString nCounter gene expression data.
 #'
-#' This function reads in a zip file or folder containing multiple .rcc files, and then conducts positive
+#' This function reads in a zip file or folder containing multiple .rcc files 
+#' (or a txt/csv file containing raw count data), and then conducts positive
 #' control normalization, background correction, and housekeeping normalization.
 #'
-#' @param fileDirs file path (or zip file) containing the .rcc files, or multiple directories in
+#' @param nsFiles file path (or zip file) containing the .rcc files, or multiple directories in
 #' a character vector, or a single text/csv file containing the combined counts.
 #' @param sampleTab .txt (tab-delimited) or .csv (comma-delimited) file containing sample data
 #' table (optional, default NULL)
@@ -38,7 +39,7 @@
 #'
 #' @return An rds file containing the raw and normalized counts, sample and qc info (from rcc files), and dictionary
 
-processNanostringData <- function(fileDirs,
+processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, idCol = NULL, groupCol = NULL, replicateCol = NULL,
                                   bgType = c("threshold", "t.test"),
                                   bgThreshold = 3, bgProportion = 0.5, bgPVal = 0.001, bgSubtract = FALSE,
@@ -60,7 +61,7 @@ processNanostringData <- function(fileDirs,
              analysis. Stopping...\n", file=logfile, append=TRUE))
   }
 
-  file.extension <- substr(fileDirs[1], (nchar(fileDirs[1])-3), nchar(fileDirs[1]))
+  file.extension <- substr(nsFiles[1], (nchar(nsFiles[1])-3), nchar(nsFiles[1]))
   
   # Read in expression data from individual rcc files, 
   # or merged txt or csv files.
@@ -69,10 +70,10 @@ processNanostringData <- function(fileDirs,
     
     # Read in merged count data
     if (file.extension %in% c(".txt", ".TXT")) {
-      tabData <- read.delim(fileDirs,
+      tabData <- read.delim(nsFiles,
                             stringsAsFactors = FALSE)
     } else {
-      tabData <- read.csv(fileDirs,
+      tabData <- read.csv(nsFiles,
                           stringsAsFactors = FALSE)
     }
     
@@ -86,13 +87,13 @@ processNanostringData <- function(fileDirs,
     
   } else {
     
-    # Extract from fileDirs, if zipped
+    # Extract from nsFiles, if zipped
     if (file.extension %in% c(".zip", ".ZIP")){
-      fileDirs <- unzip.dirs(fileDirs)
+      nsFiles <- unzip.dirs(nsFiles)
     }
     
     # Get filenames (combines files from multiple directories if necessary)
-    fileNames <- c(sapply(fileDirs, list.files, full.names = TRUE))
+    fileNames <- c(sapply(nsFiles, list.files, full.names = TRUE))
     
     cat("\n---Running processNanostringData.R ---\nReading in .RCC files......\n",
         file=logfile, append=TRUE)

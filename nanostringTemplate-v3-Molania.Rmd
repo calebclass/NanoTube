@@ -59,7 +59,7 @@ geneset.file <- "data/h.all.v7.1.symbols.gmt"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.height = 4, fig.width = 5)
 
 # in NanoTube folder:
-#devtools::install(".")
+devtools::install(".")
 library(rlang)
 library(Biobase)
 library(limma)
@@ -91,10 +91,10 @@ colnames(nanostringData$exprs) <-
 
 #if (is.null(groups)) groups <- gsub("_.*", "", colnames(nanostringData$exprs))
 
-limmaResults <- runLimmaAnalysis(nanostringData, groups = nanostringData$groups, base.group)
+limmaResults <- runLimmaAnalysis(nanostringData, base.group = NULL)
 #makeDiffExprFile(limmaResults, filename = NULL)
 
-# q-value calculated by benjamini-hochberg, not accurate for pathway analysis since pathways aren't independent
+# q-value calculated by benjamini-hochberg, problem for pathway analysis since pathways aren't independent
 # (fgsea also does this)
 genesetResults <- mHG.genesets.multi(limmaResults, geneset.file,
                                t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)

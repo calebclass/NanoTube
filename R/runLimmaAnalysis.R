@@ -5,20 +5,37 @@
 #' identify significantly differentially expressed genes.
 #'
 #' @param dat NanoString data, including expression matrix and gene dictionary
-#' @param groups character vector, in same order as the samples in dat
+#' @param groups character vector, in same order as the samples in dat. NULL
+#' if already included in 'dat'
 #' @param base.group the group against which other groups are compared (must
-#' be one of the levels in 'groups')
+#' be one of the levels in 'groups'). Will use the first group if NULL.
 #' @return The fit Limma object
 
-runLimmaAnalysis <- function(dat, groups, base.group) {
-
-  if (!(base.group %in% groups)) stop("'base.group' must be in 'groups'")
+runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL) {
 
   dat.limma <- dat$exprs[dat$dict$CodeClass == "Endogenous",]
   rownames(dat.limma) <- dat$dict$Name[dat$dict$CodeClass == "Endogenous"]
   dat.limma <- log2(dat.limma + 0.5)
   #dat.limma <- dat.limma[,order(colnames(dat.limma))]
 
+  # If group info was loaded from a sample table, it is included in 'dat'.
+  if (is.null(groups)) {
+    if ("groups" %in% names(dat)) {
+      groups <- dat$groups
+    } else {
+      stop("Groups not defined. Group identifiers must be loaded during
+           processNanostringData() or runLimmaAnalysis().")
+    }
+  }
+  
+  # If base group was not defined, set it as the first group provided.
+  if (is.null(base.group)) {
+    base.group <- groups[1]
+  } else {
+    # Check validity of base.group
+    if (!(base.group %in% groups)) stop("'base.group' must be in 'groups'")
+  }
+  
   if (class(groups) == "factor") {
     groups.f <- factor(groups, levels = c(base.group, levels(groups)[levels(groups) != base.group]))
   } else {
