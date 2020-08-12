@@ -21,7 +21,7 @@ read.merge.rcc <- function(fileList, includeQC = FALSE, logfile = "") {
                      dict = dat[[1]][[1]][,1:3])
   #                   samples = cbind(dat[[1]][[2]][,1], sapply(dat, function(X) X[[2]][,2])))
   #                     qc = cbind(dat[[1]][[3]][,1], sapply(dat, function(X) X[[3]][,2])))
-  rownames(merged.dat[[1]]) <- merged.dat$dict[,3]
+  rownames(merged.dat[[1]]) <- rownames(merged.dat[[2]]) <- merged.dat$dict[,3]
   colnames(merged.dat[[1]]) <- gsub(".*\\/", "", fileList)
   #colnames(merged.dat[[3]]) <- c(colnames(dat[[3]][[1]])[1], gsub(".*\\/", "", fileList))
 

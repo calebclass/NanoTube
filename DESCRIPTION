@@ -2,9 +2,11 @@ Package: NanoTube
 Type: Package
 Title: An Easy Pipeline for NanoString nCounter Data Analysis
 Version: 0.1.0
+Date: 2020-08-11
 Author: Caleb A. Class
 Maintainer: Caleb A. Class <caclass@mdanderson.org>
-Imports: Biobase, limma, NanoStringDiff, reshape, mHG
+Imports: limma, NanoStringDiff, reshape, mHG
+Depends: Biobase
 Suggests: shiny, rlang, plotly, knitr, kableExtra, ggplot2, grid, ruv
 Description: NanoTube includes functions for processing, 
 License: GPL-2
@@ -12,3 +14,4 @@ Encoding: UTF-8
 LazyData: true
 Suggests: testthat
 RoxygenNote: 6.0.1
+biocViews: Software, GeneExpression, DifferentialExpression

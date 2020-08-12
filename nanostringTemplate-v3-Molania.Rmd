@@ -70,9 +70,21 @@ library(NanoTube)
 
 nanostringData <- processNanostringData(file.folder,
                                         sampleTab = sampleTab, idCol = "SampleNames",  groupCol = "Tissues", replicateCol = "Patient.barcodes",
+                             normalization = "nCounter",
                              bgType = "t.test", bgPVal = 0.001,
                              housekeeping = hk.genes,
                              includeQC = TRUE)
+
+# Try NanoStringDiff
+test <- createNanoStringSetFromEset(nanostringData)
+
+# Test RUV
+nanostringDataRUV <- processNanostringData(file.folder,
+                                        sampleTab = sampleTab, idCol = "SampleNames",  groupCol = "Tissues", replicateCol = "Patient.barcodes",
+                             normalization = "RUV")
+
+
+
 
 # This is only to generate background data for the QC report
 nanostringDataBG <- processNanostringData(file.folder,
@@ -102,6 +114,45 @@ genesetResults <- mHG.genesets.multi(limmaResults, geneset.file,
 
 ```
 
+
+```{r compareNorm}
+all(rownames(nanostringData) == rownames(nanostringDataRUV))
+all(colnames(nanostringData) == colnames(nanostringDataRUV))
+
+compare.norm <- data.frame(nCounter = log2(as.vector(exprs(nanostringData))),
+                           RUV = as.vector(exprs(nanostringDataRUV)),
+                           CodeClass = rep(fData(nanostringData)$CodeClass, times = ncol(nanostringData)))
+ggplot(compare.norm, aes(x=nCounter, y=RUV, colour = CodeClass)) +
+  geom_point(alpha = 0.1)
+
+
+```
+
+```{r compare Limma}
+limmaRUV <- runLimmaAnalysis(nanostringDataRUV, base.group = NULL)
+
+qplot(limmaResults$coefficients[,2], limmaRUV$coefficients[,2])
+#cor.test(limmaResults$coefficients[,2], limmaRUV$coefficients[,2], method = "spearman")
+
+```
+```{r}
+qplot(limmaResults$p.value[,2], limmaRUV$p.value[,2])
+
+```
+
+# Now GSEA
+
+```{r compareGSEA}
+
+genesetRUV <- mHG.genesets.multi(limmaRUV, geneset.file,
+                               t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
+
+qplot(genesetResults$`normal-lung`$negative$p.val, 
+      genesetRUV$`normal-lung`$negative$p.val)
+
+table(genesetResults$`normal-lung`$negative$p.val < 0.05, genesetRUV$`normal-lung`$negative$p.val < 0.05)
+
+```
 
 ```{r textOutputs, include = FALSE, eval = FALSE}
 # QC file

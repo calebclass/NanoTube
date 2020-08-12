@@ -1,8 +1,8 @@
 #' Process NanoString nCounter gene expression data.
 #'
 #' This function reads in a zip file or folder containing multiple .rcc files 
-#' (or a txt/csv file containing raw count data), and then conducts positive
-#' control normalization, background correction, and housekeeping normalization.
+#' (or a txt/csv file containing raw count data), and then optionally conducts 
+#' positive control normalization, background correction, and housekeeping normalization.
 #'
 #' @param nsFiles file path (or zip file) containing the .rcc files, or multiple directories in
 #' a character vector, or a single text/csv file containing the combined counts.
@@ -13,12 +13,19 @@
 #' (default NULL: will assume the first column contains the sample identifiers)
 #' @param groupCol the column name of the group identifiers in the sample table (required
 #' if sampleTab is provided).
-#' @param replicateCol the column name of the replicate identifiers (default
-#' NULL). Multiple replicates of the same sample will have the same value in 
-#' this column.
-#' @param bgType type of background correction to use: "threshold" sets a thresold for N standard deviations
-#' above the mean of negative controls. "t.test" conducts a one-sided t test for each gene against all
-#' negative controls.
+#' @param replicateCol the column name of the technical replicate identifiers 
+#' (default NULL). Multiple replicates of the same sample will have the same value in 
+#' this column. Replicates are used to improve normalization performance in the
+#' "RUV" method; otherwise they are averaged.
+#' @param normalization If "nSolver" (default), continues with background, positive 
+#' control, and housekeeping control normalization steps to return
+#' a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
+#' controls, housekeeping genes and technical replicates. If "none", returns a 
+#' NanoStringSet with the raw counts, suitable for running NanoStringDiff.
+#' @param bgType Only if (normalization=="nSolver"): Type of background correction to use: 
+#' "threshold" sets a threshold for N standard deviations above the mean of 
+#' negative controls. "t.test" conducts a one-sided t test for each gene against 
+#' all negative controls.
 #' @param bgThreshold If bgType=="threshold", number of sd's above the mean to set as threshold
 #' for background correction.
 #' @param bgProportion If bgType=="threshold", proportion of samples that a gene must be above threshold to
@@ -28,7 +35,7 @@
 #' If TRUE, will subtract mean+numSD*sd of the negative controls from the endogenous genes,
 #' and then set negative values to zero (default FALSE)
 #' @param housekeeping vector of genes (symbols or accession) to use for housekeeping correction. If NULL,
-#' will use genes listed in .rcc files as "Housekeeping"
+#' will use genes listed as "Housekeeping" under CodeClass.
 #' @param skip.housekeeping Skip housekeeping normalization? (default FALSE)
 #' @param includeQC Should we include the QC from the .rcc files? This can cause errors,
 #' particularly when reading in files from multiple experiments.
@@ -37,10 +44,12 @@
 #' from the replicateCol in the sampleTab, if provided.
 #' @param logfile a filename for the logfile (optional). If blank, will print warnings to screen.
 #'
-#' @return An rds file containing the raw and normalized counts, sample and qc info (from rcc files), and dictionary
+#' @return An ExpressionSet containing the raw or normalized counts, dictionary,
+#' and sample info if provided
 
 processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, idCol = NULL, groupCol = NULL, replicateCol = NULL,
+                                  normalization = c("nSolver", "RUV", "none"),
                                   bgType = c("threshold", "t.test"),
                                   bgThreshold = 3, bgProportion = 0.5, bgPVal = 0.001, bgSubtract = FALSE,
                                   housekeeping = NULL, skip.housekeeping = FALSE,
@@ -108,18 +117,32 @@ processNanostringData <- function(nsFiles,
                            idCol = idCol, groupCol = groupCol, replicateCol = replicateCol)
   }
   
-  # Average counts for technical replicates
+  # Mark specified genes as housekeeping (may already be marked)
+  dat$dict$CodeClass[dat$dict$Name %in% housekeeping | dat$dict$Accession %in% housekeeping] <- "Housekeeping"
+  
+  # Average counts for technical replicates or normalize using RUV.
   # Use the replicate ID's extracted from the sampleTab, if applicable.
   if ("replicates" %in% names(dat)) {
     sampIds <- dat$replicates
   }
   
   # Or use the ID's provided directly.
-  if (!is.null(sampIds) & any(duplicated(sampIds))) {
+  # Then average replicates, or normalize using "RUV".
+  if ((!is.null(sampIds) & any(duplicated(sampIds))) | normalization != "RUV") {
+    if (is.null(sampIds)) sampIds <- 1:ncol(dat$exprs)
+      
     dupSamps <- names(table(sampIds)[table(sampIds) > 1])
-    for (i in dupSamps) {
-      dat$exprs[,sampIds == i] <- rowMeans(dat$exprs[,sampIds == i])
+    
+    if (normalization == "RUV") {
+      # Use all genes as control genes to start (recommendation by RUV authors)
+      dat$exprs <- t(ruv::RUVIII(t(log2(dat$exprs+0.5)), M = sampIds,
+                                    ctl = 1:nrow(dat$exprs), k = NULL))
+    } else {
+      for (i in dupSamps) {
+        dat$exprs[,sampIds == i] <- rowMeans(dat$exprs[,sampIds == i])
+      }
     }
+    
     # Remove duplicates
     dat$exprs <- dat$exprs[,!duplicated(sampIds)]
     dat$samples <- dat$samples[!duplicated(sampIds),]
@@ -127,33 +150,41 @@ processNanostringData <- function(nsFiles,
     if ("groups" %in% names(dat)) dat$groups <- dat$groups[!duplicated(sampIds)]
   }
 
-  # Mark specified genes as housekeeping (may already be marked)
-  dat$dict$CodeClass[dat$dict$Name %in% housekeeping | dat$dict$Accession %in% housekeeping] <- "Housekeeping"
-
-  # Normalize positive controls
-  cat("\nCalculating positive scale factors......\n",
-      file=logfile, append=TRUE)
-  dat.norm <- normalize.pos.controls(dat, logfile)
-
-  # Remove genes that fail background check
-  cat("\nChecking endogenous genes against background threshold......\n",
-      file=logfile, append=TRUE)
-  #if (bgType == "threshold"){
-  #  dat.norm <- remove.background(dat.norm, mode=bgType, numSD = bgThreshold, proportionReq = bgProportion, subtract)
-  #} else if (bgType == "t.test") {
-  #  dat.norm <- remove.background(dat.norm, mode=bgType, pval = bgPVal, subtract)
-  #}
-  dat.norm <- remove.background(dat.norm, mode = bgType, 
-                                numSD = bgThreshold, proportionReq = bgProportion,
-                                pval = bgPVal, subtract = bgSubtract)
-
-  # Normalize housekeeping
-  if (!skip.housekeeping) dat.norm <- normalize.housekeeping(dat.norm, housekeeping)
-
-  # Save results
-  dat.out <- dat.norm
-  dat.out$exprs.raw <- dat$exprs
-  dat.out$dict.raw <- dat$dict
+  
+  # Normalize using nSolver recommended method:
+  if (normalization == "nSolver") {
+    # Normalize positive controls
+    cat("\nCalculating positive scale factors......\n",
+        file=logfile, append=TRUE)
+    dat.norm <- normalize.pos.controls(dat, logfile)
+    
+    # Remove genes that fail background check
+    cat("\nChecking endogenous genes against background threshold......\n",
+        file=logfile, append=TRUE)
+    #if (bgType == "threshold"){
+    #  dat.norm <- remove.background(dat.norm, mode=bgType, numSD = bgThreshold, proportionReq = bgProportion, subtract)
+    #} else if (bgType == "t.test") {
+    #  dat.norm <- remove.background(dat.norm, mode=bgType, pval = bgPVal, subtract)
+    #}
+    dat.norm <- remove.background(dat.norm, mode = bgType, 
+                                  numSD = bgThreshold, proportionReq = bgProportion,
+                                  pval = bgPVal, subtract = bgSubtract)
+    
+    # Normalize housekeeping
+    if (!skip.housekeeping) dat.norm <- normalize.housekeeping(dat.norm, housekeeping)
+    
+    dat <- dat.norm
+  }
+  
+  
+  
+  # Convert to ExpressionSet
+  dat.out <- ExpressionSet(assayData = as.matrix(dat$exprs),
+                           featureData = AnnotatedDataFrame(dat$dict))
+  
+  if("samples" %in% names(dat)) phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
+  if("groups" %in% names(dat)) dat.out$groups <- dat$groups
+  dat.out$normalization <- normalization
 
   return(dat.out)
 
