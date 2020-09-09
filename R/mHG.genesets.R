@@ -6,8 +6,10 @@
 #' and negatively-enriched genes) are desired, mHG.genesets.multi can be used.
 #'
 #' @param ranked.list A named vector, ranked in order of differential expression.
-#' @param geneset.file Gene set file name, in .rds (list) or .gmt format. Gene names must be
+#' @param geneset.file Gene set file name, in .rds (list), .gmt, or .tab format. Gene names must be
 #' in the same form as in the ranked.list.
+#' @param sourceDB Source database to include, only if using a .tab-format 
+#' geneset.file from CPDB.
 #' @param numReq Number of genes required to conduct analysis on a given gene set (default = 1).
 #' If fewer than this number of genes from the ranked list are included in a gene set, that
 #' gene set will be skipped for this analysis.
@@ -16,15 +18,17 @@
 #' first half of the list) length to be considered.
 #' @return A data frame containing the mHG results for each gene set.
 
-mHG.genesets <- function(ranked.list, geneset.file,
+mHG.genesets <- function(ranked.list, geneset.file, sourceDB = NULL,
                          numReq = 1, n_max = length(ranked.list)) {
   library(mHG)
 
   file.type <- substr(geneset.file, start = nchar(geneset.file)-2, stop = nchar(geneset.file))
-  if (file.type == "rds"){
+  if (file.type == "rds") {
     genesets <- readRDS(geneset.file)
-  } else if (file.type == "gmt"){
+  } else if (file.type == "gmt") {
     genesets <- read.gmt(geneset.file)
+  } else if (file.type == "tab") {
+    genesets <- read_cpdb_tab(geneset.file, sourceDB)
   } else {
     stop("geneset.file must be in .rds (list object) or .gmt format")
   }

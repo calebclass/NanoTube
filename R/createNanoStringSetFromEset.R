@@ -29,6 +29,8 @@ createNanoStringSetFromEset <- function(eset, designs = NULL) {
                                                negativeControl = exprs(eset)[fData(eset)$CodeClass == "Negative",],
                                                housekeepingControl = exprs(eset)[fData(eset)$CodeClass == "Housekeeping",],
                                                designs = designs)
+  fData(nsSet) <- fData(eset)[fData(eset)$CodeClass == "Endogenous",]
+  rownames(nsSet) <- fData(nsSet)$Name
   
   return(nsSet)
 }

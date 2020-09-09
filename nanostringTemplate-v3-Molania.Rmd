@@ -24,6 +24,7 @@ output: html_document
 </style>
 
 
+# Prep 
 
 ```{r userInput, include = FALSE, echo = FALSE}
 # This is the only part to be edited by the standard user. Advanced users might want to adjust
@@ -76,7 +77,7 @@ nanostringData <- processNanostringData(file.folder,
                              includeQC = TRUE)
 
 # Try NanoStringDiff
-test <- createNanoStringSetFromEset(nanostringData)
+#test <- createNanoStringSetFromEset(nanostringData)
 
 # Test RUV
 nanostringDataRUV <- processNanostringData(file.folder,
@@ -89,17 +90,18 @@ nanostringDataRUV <- processNanostringData(file.folder,
 # This is only to generate background data for the QC report
 nanostringDataBG <- processNanostringData(file.folder,
                                           sampleTab = sampleTab, idCol = "SampleNames", groupCol = "Tissues", replicateCol = "Patient.barcodes",
+                                          normalization = "nSolver",
                              bgType = "threshold", bgThreshold = 2, bgProportion = 0.5,
                              housekeeping = hk.genes,
                              includeQC = TRUE)
 
-colnames(nanostringData$exprs) <- 
-  colnames(nanostringData$exprs.raw) <-
-  names(nanostringData$pc.scalefactors) <-
-  names(nanostringData$hk.scalefactors) <-
+#colnames(nanostringData$exprs) <- 
+#  colnames(nanostringData$exprs.raw) <-
+#  names(nanostringData$pc.scalefactors) <-
+#  names(nanostringData$hk.scalefactors) <-
   #colnames(nanostringData$qc) <- 
-  rownames(nanostringDataBG$bg.stats) <-
-  gsub(".* |\\.RCC", "", colnames(nanostringData$exprs))
+#  rownames(nanostringDataBG$bg.stats) <-
+#  gsub(".* |\\.RCC", "", colnames(nanostringData$exprs))
 
 #if (is.null(groups)) groups <- gsub("_.*", "", colnames(nanostringData$exprs))
 
@@ -112,8 +114,44 @@ genesetResults <- mHG.genesets.multi(limmaResults, geneset.file,
                                t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
 
 
+# Try using CPDB
+genesetResults2 <- mHG.genesets.multi(limmaResults, geneset.file = "../../Pathway_DBs/ConsensusPathDB/CPDB_pathways_genes_symbol.tab",
+                                      sourceDB = "Reactome",
+                               t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
+
+# Try with FGSEA
+genesetResults2f <- limmaToFGSEA(limmaResults, gene.sets = "../../Pathway_DBs/ConsensusPathDB/CPDB_pathways_genes_symbol.tab", sourceDB = "Reactome",
+                                  min.set = 5, rank.by = "t", skip.first = TRUE)
+
+
+
+genesetResults3 <- mHG.genesets.multi(limmaResults, geneset.file = "../../Pathway_DBs/ConsensusPathDB/CPDB_pathways_genes_symbol.tab",
+                               t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
+
+```
+```{r compareGSEA}
+
+compareGSEA <- merge(genesetResults2$`normal-lung`$negative, genesetResults2f$`normal-lung`,
+                     by.x = "row.names", by.y = "pathway")
+
 ```
 
+
+```{r gseaPost}
+ledge <- fgseaToLEdge(genesetResults2f)
+
+ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "none")
+
+ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "pval",
+                      cutoff = 2)
+
+ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "NES",
+                      cutoff = 2)
+ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "NES",
+                      cutoff = 2, nes.abs.cutoff = FALSE)
+ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "NES",
+                      cutoff = -2, nes.abs.cutoff = FALSE)
+```
 
 ```{r compareNorm}
 all(rownames(nanostringData) == rownames(nanostringDataRUV))
@@ -140,9 +178,9 @@ qplot(limmaResults$p.value[,2], limmaRUV$p.value[,2])
 
 ```
 
-# Now GSEA
+### Now GSEA
 
-```{r compareGSEA}
+```{r compareGSEAruv}
 
 genesetRUV <- mHG.genesets.multi(limmaRUV, geneset.file,
                                t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
@@ -171,11 +209,13 @@ makeDiffExprFile(limmaResults,
 #                 filename = paste0(file.folder, "../20180418-24_immuneSig_diffExpr.txt"))
 
 # Pathway files
-leadingEdge <- mHG.to.LEdge.multi(genesetResults, limmaResults, 
-                                  t.thresh = 2, q.thresh = 0.1, geneset.file)
+leadingEdge <- mHG.to.LEdge(genesetResults, limmaResults, 
+                                  t.thresh = 2, q.thresh = 0.2, geneset.file)
+mHG.grouped <- groupByDistance(genesetResults2$`normal-lung`$negative, leadingEdge$`normal-lung`, 
+                               join.threshold = 0.5, returns = "all")
 
-#mHG.postprocessing(genesetResults, leadingEdge, limmaResults, 
-#                     join.threshold = 0.5, reportDir="test")
+mHG.postprocessing(genesetResults2, leadingEdge, limmaResults, 
+                     join.threshold = 0.5, reportDir="data/Molania/NanostringNormalization-master/Example 1_LungCancerStudy/test/txt")
 mHG.postprocessing.xlsx(genesetResults, leadingEdge, limmaResults, 
                      join.threshold = 0.5, filename="data/Molania/NanostringNormalization-master/Example 1_LungCancerStudy/test/Results.xlsx")
 
@@ -186,6 +226,64 @@ grouped <-   groupByDistance(genesetResults[[1]][[2]],
 #                                    filename = paste0(file.folder, "../chips78/chip8_pd1Negative-c7"))
 
 ```
+
+```{r postProcessFGSEA, include = FALSE}
+
+gs.ledge <- fgseaToLEdge(genesetResults2f, cutoff.type = "padj", cutoff = 0.05)
+gs.group <- groupFGSEA(genesetResults2f$`normal-lung`, l.edge = gs.ledge$`normal-lung`, 
+                       join.threshold = 0.5, returns = "all")
+
+groupedGSEAtoStackedReport(gs.group, gs.ledge$`normal-lung`, limmaResults,
+                                   outputDir = "test")
+
+```
+
+
+### Comparing mutations among cancer
+
+```{r, include = FALSE}
+nanostringData <- processNanostringData(file.folder,
+                                        sampleTab = sampleTab, idCol = "SampleNames",  groupCol = "Mutation", replicateCol = "Patient.barcodes",
+                             normalization = "nCounter",
+                             bgType = "t.test", bgPVal = 0.001,
+                             housekeeping = hk.genes,
+                             includeQC = TRUE)
+
+# Only Cancer, remove ALK-mut (only 1 sample)
+nanostringData <- nanostringData[,nanostringData$Mutation != "ALK" & 
+                                 nanostringData$Tissues == "Cancer"]
+
+limmaResults <- runLimmaAnalysis(nanostringData, base.group = "NIL")
+#makeDiffExprFile(limmaResults, filename = NULL)
+
+
+genesetResults2f <- limmaToFGSEA(limmaResults, gene.sets = "../../Pathway_DBs/ConsensusPathDB/CPDB_pathways_genes_symbol.tab", sourceDB = "Reactome",
+                                  min.set = 5, rank.by = "t", skip.first = TRUE)
+
+ledge2f <- fgseaToLEdge(genesetResults2f, cutoff.type = "pval", cutoff = 0.05)
+testTab <- makeFGSEAmasterTable(genesetResults2f, ledge2f,
+                                 join.threshold = 0.5,
+                                 ngroups = NULL,
+                                 dist.method = "binary",
+                                 filename = NULL)
+
+fgseaPostprocessing(genesetResults2f, ledge2f, limmaResults, 
+                    join.threshold = 0.5, reportDir = "test/fgseaPP")
+fgseaPostprocessingXLSX(genesetResults2f, ledge2f, limmaResults, 
+                    join.threshold = 0.5, filename = "test/fgseaPP.xlsx")
+
+
+ledge2f <- fgseaToLEdge(genesetResults2f, cutoff.type = "padj", cutoff = 0.05)
+testTab <- makeFGSEAmasterTable(genesetResults2f, ledge2f,
+                                 join.threshold = 0.5,
+                                 ngroups = NULL,
+                                 dist.method = "binary",
+                                 filename = NULL)
+
+
+
+```
+
 
 # Analysis {.tabset}
 

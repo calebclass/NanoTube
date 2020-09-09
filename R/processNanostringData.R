@@ -128,6 +128,8 @@ processNanostringData <- function(nsFiles,
   
   # Or use the ID's provided directly.
   # Then average replicates, or normalize using "RUV".
+  normalization <- normalization[1]
+  
   if ((!is.null(sampIds) & any(duplicated(sampIds))) | normalization != "RUV") {
     if (is.null(sampIds)) sampIds <- 1:ncol(dat$exprs)
       
@@ -183,8 +185,8 @@ processNanostringData <- function(nsFiles,
                            featureData = AnnotatedDataFrame(dat$dict))
   
   if("samples" %in% names(dat)) phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
-  if("groups" %in% names(dat)) dat.out$groups <- dat$groups
-  dat.out$normalization <- normalization
+  if("groups" %in% names(dat)) phenoData(dat.out)$groups <- dat$groups
+  phenoData(dat.out)$normalization <- normalization
 
   return(dat.out)
 

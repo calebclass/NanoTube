@@ -5,8 +5,10 @@
 #' decreased (negative t-statistics) directions.
 #'
 #' @param limmaResults Result from runLimmaAnalysis.
-#' @param geneset.file Gene set file name, in .rds (list) or .gmt format. Gene names must be
+#' @param geneset.file Gene set file name, in .rds (list), .gmt, or .tab format. Gene names must be
 #' in the same form as in the ranked.list.
+#' @param sourceDB Source database to include, only if using a .tab-format 
+#' geneset.file from CPDB.
 #' @param t_thresh The threshold t-statistic for considering a gene positively or negatively.
 #' For "negative" analysis, this threshold is set to -t_thresh.
 #' @param numReq_overall The number of genes that must be differentially expressed above t_thresh
@@ -20,7 +22,7 @@
 #' in the base group vs. the comparison group (negative).
 
 
-mHG.genesets.multi <- function(limmaResults, geneset.file,
+mHG.genesets.multi <- function(limmaResults, geneset.file, sourceDB = NULL,
                                t_thresh = 2, numReq_overall = 10, numReq_inSet = 5,
                                skipFirst = TRUE) {
   # limmaResults -- Results from runLimmaAnalysis
@@ -38,7 +40,7 @@ mHG.genesets.multi <- function(limmaResults, geneset.file,
     if (sum(testDat > t_thresh) >= numReq_overall) {
       mHG.res[[colnames(limmaResults$t)[i]]]$positive <-
         mHG.genesets(testDat,
-                     geneset.file,
+                     geneset.file, sourceDB,
                      numReq = numReq_inSet, n_max = sum(testDat > t_thresh))
     } else {
       mHG.res[[colnames(limmaResults$t)[i]]]$positive <- NULL
@@ -47,7 +49,7 @@ mHG.genesets.multi <- function(limmaResults, geneset.file,
     if (sum(testDat2 > t_thresh) >= numReq_overall) {
       mHG.res[[colnames(limmaResults$t)[i]]]$negative <-
         mHG.genesets(testDat2,
-                     geneset.file,
+                     geneset.file, sourceDB,
                      numReq = numReq_inSet, n_max = sum(testDat2 > t_thresh))
     } else {
       mHG.res[[colnames(limmaResults$t)[i]]]$negative <- NULL

@@ -1,10 +1,9 @@
 mHG.postprocessing.xlsx <- function(genesetResults, leadingEdge, limmaResults,
                                     join.threshold = 0.5, filename) {
-  library(xlsx)
 
   tab <- make.mHG.master.table(genesetResults, leadingEdge,
                                 join.threshold)
-  write.xlsx(tab, filename, sheetName="Summary",
+  xlsx::write.xlsx(tab, filename, sheetName="Summary",
              row.names = FALSE, col.names = TRUE, append = FALSE)
   
   for (i in names(genesetResults)) {
@@ -16,7 +15,7 @@ mHG.postprocessing.xlsx <- function(genesetResults, leadingEdge, limmaResults,
         
         tab <- prep.stackedReport.from.grouped.mHG(grouped, leadingEdge[[i]][[j]], 
                                                    limmaResults)
-        write.xlsx(tab, filename, sheetName=paste0(i, "_", j),
+        xlsx::write.xlsx(tab, filename, sheetName=paste0(i, "_", j),
                    row.names = FALSE, col.names = TRUE, append = TRUE)
       }
     }
