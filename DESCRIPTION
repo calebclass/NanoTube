@@ -8,7 +8,8 @@ Maintainer: Caleb A. Class <caclass@mdanderson.org>
 Imports: limma, NanoStringDiff, reshape, mHG
 Depends: Biobase
 Suggests: shiny, rlang, plotly, knitr, kableExtra, ggplot2, grid, ruv
-Description: NanoTube includes functions for processing, 
+VignetteBuilder: knitr
+Description: NanoTube includes functions for the processing, analysis, and plotting of NanoString nCounter data.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

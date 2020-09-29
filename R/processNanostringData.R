@@ -42,9 +42,13 @@
 #' @param sampIds a vector of sample identifiers, important if there are technical replicates.
 #' Currently, this function averages technical replicates. sampIds will be extracted
 #' from the replicateCol in the sampleTab, if provided.
+#' @param output.format If "list", will return the normalized (optional) and raw expression data,
+#' as well as various QC and relevant information tables. If "ExpressionSet" (default),
+#' will convert to an n*p ExpressionSet, with n rows representing genes and
+#' p columns representing samples.
 #' @param logfile a filename for the logfile (optional). If blank, will print warnings to screen.
 #'
-#' @return An ExpressionSet containing the raw or normalized counts, dictionary,
+#' @return An list or ExpressionSet containing the raw and/or normalized counts, dictionary,
 #' and sample info if provided
 
 processNanostringData <- function(nsFiles,
@@ -55,6 +59,7 @@ processNanostringData <- function(nsFiles,
                                   housekeeping = NULL, skip.housekeeping = FALSE,
                                   includeQC = FALSE,
                                   sampIds = NULL,
+                                  output.format = c("ExpressionSet", "list"),
                                   logfile = "") {
 
   # Quick error checking:
@@ -78,6 +83,9 @@ processNanostringData <- function(nsFiles,
   if (file.extension %in% c(".txt", ".TXT", ".csv", ".CSV")) {
     
     # Read in merged count data
+    cat("\nLoading count data......",
+        file=logfile, append=TRUE)
+    
     if (file.extension %in% c(".txt", ".TXT")) {
       tabData <- read.delim(nsFiles,
                             stringsAsFactors = FALSE)
@@ -98,22 +106,22 @@ processNanostringData <- function(nsFiles,
     
     # Extract from nsFiles, if zipped
     if (file.extension %in% c(".zip", ".ZIP")){
-      nsFiles <- unzip.dirs(nsFiles)
+      nsFiles <- unzip_dirs(nsFiles)
     }
     
     # Get filenames (combines files from multiple directories if necessary)
     fileNames <- c(sapply(nsFiles, list.files, full.names = TRUE))
     
-    cat("\n---Running processNanostringData.R ---\nReading in .RCC files......\n",
+    cat("\nReading in .RCC files......",
         file=logfile, append=TRUE)
     
     # Read in .rcc files
-    dat <- read.merge.rcc(fileNames, includeQC, logfile)
+    dat <- read_merge_rcc(fileNames, includeQC, logfile)
   }
   
   # Read in sample data file, if provided.
   if (!is.null(sampleTab)) {
-    dat <- read.sampleData(dat, file.name = sampleTab,
+    dat <- read_sampleData(dat, file.name = sampleTab,
                            idCol = idCol, groupCol = groupCol, replicateCol = replicateCol)
   }
   
@@ -137,9 +145,13 @@ processNanostringData <- function(nsFiles,
     
     if (normalization == "RUV") {
       # Use all genes as control genes to start (recommendation by RUV authors)
+      cat("\nConducting RUV normalization......",
+          file=logfile, append=TRUE)
       dat$exprs <- t(ruv::RUVIII(t(log2(dat$exprs+0.5)), M = sampIds,
                                     ctl = 1:nrow(dat$exprs), k = NULL))
     } else {
+      cat("\nAveraging technical replicates.....",
+          file=logfile, append=TRUE)
       for (i in dupSamps) {
         dat$exprs[,sampIds == i] <- rowMeans(dat$exprs[,sampIds == i])
       }
@@ -148,7 +160,7 @@ processNanostringData <- function(nsFiles,
     # Remove duplicates
     dat$exprs <- dat$exprs[,!duplicated(sampIds)]
     dat$samples <- dat$samples[!duplicated(sampIds),]
-    if (includeQC) dat$qc <- dat$qc[,!duplicated(sampIds)]
+    if (includeQC) dat$qc <- dat$qc[!duplicated(sampIds),]
     if ("groups" %in% names(dat)) dat$groups <- dat$groups[!duplicated(sampIds)]
   }
 
@@ -156,38 +168,45 @@ processNanostringData <- function(nsFiles,
   # Normalize using nSolver recommended method:
   if (normalization == "nSolver") {
     # Normalize positive controls
-    cat("\nCalculating positive scale factors......\n",
+    cat("\nCalculating positive scale factors......",
         file=logfile, append=TRUE)
-    dat.norm <- normalize.pos.controls(dat, logfile)
+    dat.norm <- normalize_pos_controls(dat, logfile)
     
     # Remove genes that fail background check
-    cat("\nChecking endogenous genes against background threshold......\n",
+    cat("\nChecking endogenous genes against background threshold......",
         file=logfile, append=TRUE)
-    #if (bgType == "threshold"){
-    #  dat.norm <- remove.background(dat.norm, mode=bgType, numSD = bgThreshold, proportionReq = bgProportion, subtract)
-    #} else if (bgType == "t.test") {
-    #  dat.norm <- remove.background(dat.norm, mode=bgType, pval = bgPVal, subtract)
-    #}
-    dat.norm <- remove.background(dat.norm, mode = bgType, 
+
+    dat.norm <- remove_background(dat.norm, mode = bgType, 
                                   numSD = bgThreshold, proportionReq = bgProportion,
                                   pval = bgPVal, subtract = bgSubtract)
     
     # Normalize housekeeping
-    if (!skip.housekeeping) dat.norm <- normalize.housekeeping(dat.norm, housekeeping)
+    if (!skip.housekeeping) {
+      cat("\nConducting housekeeping normalization......",
+          file=logfile, append=TRUE)
+      dat.norm <- normalize_housekeeping(dat.norm, housekeeping)
+    }
     
     dat <- dat.norm
   }
   
+  if (output.format == "list") {
+    dat$normalization <- normalization
+    return(dat)
+    
+  } else {
+    # Convert to ExpressionSet
+    dat.out <- ExpressionSet(assayData = as.matrix(dat$exprs),
+                             featureData = AnnotatedDataFrame(dat$dict))
+    
+    if ("samples" %in% names(dat)) phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
+    if ("groups" %in% names(dat)) phenoData(dat.out)$groups <- dat$groups
+    
+    phenoData(dat.out)$normalization <- normalization
+    
+    if (includeQC) phenoData(dat.out) <- AnnotatedDataFrame(cbind(pData(dat.out), dat$qc))
+    
+    return(dat.out)
+  }
   
-  
-  # Convert to ExpressionSet
-  dat.out <- ExpressionSet(assayData = as.matrix(dat$exprs),
-                           featureData = AnnotatedDataFrame(dat$dict))
-  
-  if("samples" %in% names(dat)) phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
-  if("groups" %in% names(dat)) phenoData(dat.out)$groups <- dat$groups
-  phenoData(dat.out)$normalization <- normalization
-
-  return(dat.out)
-
 }

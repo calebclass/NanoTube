@@ -30,28 +30,26 @@ output: html_document
 # normalization or analysis parameters in 2nd code block.
 
 # The folder containing .RCC files (can also be .zip folder)
-file.folder <- "data/GSE117751/GSE117751_RAW/"
+file.folder <- "Y:/R/CCCT/CC04_ICC/nanoStringData/lung_ms/20180403_gibbons chip8 040318_RCC/"
 
 # Housekeeping genes for normalization (if NULL, will use genes marked as housekeeping in
 # .RCC files)  --> housekeeping table in quickbase
-#hk.genes <- c("ALAS1", "ABCF1", "TBP", "PPIA", "TUBB")
-hk.genes <- NULL
+hk.genes <- c("ALAS1", "ABCF1", "TBP", "PPIA", "TUBB")
 
 # Group identifiers (treatment/etc.). Can be manual input or from file.
 # If manual, they must be the same length and in the same order as files in folder (careful!).
 # If NULL, they will be obtained from file names (must be between a space and an underscore). This works
 # for lung_ms data, we can revisit when we have standardized file/sample names.
 # If reading in file, use stringsAsFactors = FALSE.
-sampleTab <- "data/GSE117751/GSE117751_sample_data.csv"
-#test <- read.csv("data/GSE117751/GSE117751_sample_data.csv")
+groups <- NULL
 
 # The standard analysis will compare all treatment groups against vehicle (the "base.group", which must
 # be one of the "groups").
-base.group <- "None"
+base.group <- "igg"
 
 # Gene set file in .rds or .gmt format
 # Runs fast with hallmark/reactome, C7 could take a minute or two
-geneset.file <- "data/h.all.v7.1.symbols.gmt"
+geneset.file <- "C:/Users/CAClass/Documents/R/scripts_GSEA_2015/GeneSetDatabases/H-Re_v6.1.rds"
 
 ```
 
@@ -69,14 +67,12 @@ library(DT)
 library(NanoTube)
 
 nanostringData <- processNanostringData(file.folder,
-                                        sampleTab = sampleTab, idCol = "GEO_Accession",  groupCol = "Sample_Diagnosis", replicateCol = NULL,
                              bgType = "t.test", bgPVal = 0.001,
                              housekeeping = hk.genes,
                              includeQC = TRUE)
 
 # This is only to generate background data for the QC report
 nanostringDataBG <- processNanostringData(file.folder,
-                                          sampleTab = sampleTab, idCol = "GEO_Accession", groupCol = "Sample_Diagnosis", replicateCol = NULL,
                              bgType = "threshold", bgThreshold = 2, bgProportion = 0.5,
                              housekeeping = hk.genes,
                              includeQC = TRUE)
@@ -85,19 +81,19 @@ colnames(nanostringData$exprs) <-
   colnames(nanostringData$exprs.raw) <-
   names(nanostringData$pc.scalefactors) <-
   names(nanostringData$hk.scalefactors) <-
-  #colnames(nanostringData$qc) <- 
+  colnames(nanostringData$qc) <- 
   rownames(nanostringDataBG$bg.stats) <-
   gsub(".* |\\.RCC", "", colnames(nanostringData$exprs))
 
-#if (is.null(groups)) groups <- gsub("_.*", "", colnames(nanostringData$exprs))
+if (is.null(groups)) groups <- gsub("_.*", "", colnames(nanostringData$exprs))
 
-limmaResults <- runLimmaAnalysis(nanostringData, groups = nanostringData$groups, base.group)
+limmaResults <- runLimmaAnalysis(nanostringData, groups, base.group)
 #makeDiffExprFile(limmaResults, filename = NULL)
 
 # q-value calculated by benjamini-hochberg, not accurate for pathway analysis since pathways aren't independent
 # (fgsea also does this)
 genesetResults <- mHG.genesets.multi(limmaResults, geneset.file,
-                               t_thresh = 1, numReq_overall = 10, numReq_inSet = 5)
+                               t_thresh = 2, numReq_overall = 10, numReq_inSet = 5)
 
 
 ```
@@ -112,8 +108,8 @@ genesetResults <- mHG.genesets.multi(limmaResults, geneset.file,
 #write.csv(nanostringForQC$bg.stats, paste0(file.folder, "../chips78/chip8-background.csv"))
 
 # Differential expression file
-makeDiffExprFile(limmaResults, 
-                 filename = "data/Molania/NanostringNormalization-master/Example 1_LungCancerStudy/test/DiffExpr.txt")
+#makeDiffExprFile(limmaResults, 
+#                 filename = paste0(file.folder, "../chips78/chip8_diffExpr.txt"))
 
 #source("Y:/R/CCCT/functions/danaher.heatmap.R")
 #danaher.diffExpr(limmaResults, input.org = "Mu",
@@ -122,12 +118,6 @@ makeDiffExprFile(limmaResults,
 # Pathway files
 leadingEdge <- mHG.to.LEdge.multi(genesetResults, limmaResults, 
                                   t.thresh = 2, q.thresh = 0.1, geneset.file)
-
-#mHG.postprocessing(genesetResults, leadingEdge, limmaResults, 
-#                     join.threshold = 0.5, reportDir="test")
-mHG.postprocessing.xlsx(genesetResults, leadingEdge, limmaResults, 
-                     join.threshold = 0.5, filename="data/Molania/NanostringNormalization-master/Example 1_LungCancerStudy/test/Results.xlsx")
-
 grouped <-   groupByDistance(genesetResults[[1]][[2]], 
                                   leadingEdge[[1]][[2]], 
                                   join.threshold = 0.5)
@@ -136,7 +126,7 @@ grouped <-   groupByDistance(genesetResults[[1]][[2]],
 
 ```
 
-# Analysis {.tabset}
+# {.tabset}
 
 ## QC, normalization, and methods {.tabset}
 
@@ -161,7 +151,22 @@ xmin <- min(dat.pos.df$Expected)
 xmax <- max(dat.pos.df$Expected)
 ymax <- max(dat.pos.df$Observed)
 
-pos.height <- (ncol(dat.pos)-1) * 2/3
+pos1 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[1:3],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos2 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[4:6],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos3 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[7:9],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
+pos4 <- ggplot(data = dat.pos.df[dat.pos.df$Sample %in% samps[10:12],], 
+               aes(x = Expected, y = Observed)) + 
+  geom_point(aes(fill = Sample), colour ="black", pch=21, size=3) + xlim(xmin, xmax) + ylim(0, ymax) +
+  scale_fill_manual(values = c("white", "grey70", "black")) + theme_classic()
 
 # Scale factor table
 pos.tab <- data.frame(Sample = names(nanostringData$pc.scalefactors),
@@ -170,12 +175,8 @@ pos.tab <- data.frame(Sample = names(nanostringData$pc.scalefactors),
 ```
 
 <div class="column-left">
-```{r positivePlot, fig.width = 8, fig.height = pos.height}
-ggplot(data=dat.pos.df, aes(x=Expected, y=Observed)) +
-  geom_point(colour = "black", fill = "grey70", pch=21, size=3) + 
-  facet_wrap(~ Sample, ncol = 3) + 
-  xlim(xmin, xmax) + ylim(0, ymax) + theme_bw()
-
+```{r positivePlot, fig.width = 8, fig.height = 6}
+multiplot(pos1, pos2, pos3, pos4, cols=2)
 ```
 </div>
 
@@ -216,11 +217,9 @@ neg1 <- ggplot(data = dat.neg.df, aes(x=Count, y=Sample,
   geom_jitter(height = 0.2, width = 0, colour = "black", fill = "grey70", pch=21) +
   theme_classic() + ylab("") 
 
-#div(ggplotly(neg1, tooltip = c("text"), width = 550, height = 400) %>% 
-#      layout(margin = list(l=90), autosize = FALSE), 
-#   align="center")
-ggplotly(neg1, tooltip = c("text"), width = 550, height = 400) %>% 
-      layout(margin = list(l=90), autosize = FALSE)
+div(ggplotly(neg1, tooltip = c("text"), width = 550, height = 400) %>% 
+      layout(margin = list(l=90), autosize = FALSE), 
+    align="center")
 
 ```
 
@@ -262,7 +261,7 @@ samp.df <- data.frame(sample = rep(colnames(boxplot.dat),times=2),
                       hk.scaleFactor = nanostringData$hk.scalefactors))
 
 b2 <- ggplot() +
-  geom_boxplot(data=boxplot.df, aes(x=variable, y=value), fill="grey70") + 
+  geom_boxplot(data=boxplot.df, aes(x=X2, y=value), fill="grey70") + 
   theme_classic() + xlab("") + ylab("log2(counts+0.5)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -323,7 +322,7 @@ samp.df <- data.frame(sample = rep(colnames(boxplot.dat),times=2),
                       hk.scaleFactor = nanostringData$hk.scalefactors))
 
 b2 <- ggplot() +
-  geom_boxplot(data=boxplot.df, aes(x=variable, y=value, fill=group)) + 
+  geom_boxplot(data=boxplot.df, aes(x=X2, y=value, fill=group)) + 
 #  geom_point(data=samp.df, aes(x=sample, y=dat, color = scaleFactor, group=scaleFactor)) + geom_line(data=samp.df, aes(x=sample, y=dat, color = scaleFactor, group=scaleFactor)) +
   theme_classic() + xlab("") + ylab("log2(counts+0.5)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -490,7 +489,7 @@ renderDT({
 ```{r gseaClusterReport, fig.height=10, fig.width=10}
 # diffExpr stats, expression heatmap, and subluster pathway membership for selected cluster
 diffExpr <- makeDiffExprFile(limmaResults, filename = NULL)
-dat.scaled <- diffExpr[,-(1:(4*(ncol(limmaResults$t)-1)))]
+dat.scaled <- diffExpr[,-(1:(3*(ncol(limmaResults$t)-1)))]
 
 hm.max <- 3
 dat.scaled[dat.scaled > hm.max] <- hm.max
@@ -574,11 +573,10 @@ renderPlotly({
 
 downloadHandler(
   filename = function() {
-      paste0("genesetResults-", Sys.Date(), ".xlsx")
+      paste0("genesetResults-", Sys.Date())
     },
   content = function(con) {
-    mHG.postprocessing.xlsx(genesetResults, leadingEdge(), limmaResults, 
-                     join.threshold=(1-input$jac), filename=con)
+    mHG.postprocessing(genesetResults, leadingEdge(), limmaResults, reportDir=con)
   }
 )
 # 
@@ -610,9 +608,3 @@ downloadHandler(
 #   )
 # )
 ```
-
-## {-}
-
-# {-}
-
-done

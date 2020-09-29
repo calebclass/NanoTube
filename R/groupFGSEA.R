@@ -1,6 +1,6 @@
 #' Cluster gene set analysis results
 #'
-#' Groups the pathway analysis results (using mHG.genesets or mHG.genesets.multi) based on
+#' Groups the pathway analysis results (using limmaToFGSEA or nsdiffToFGSEA) based on
 #' the enriched gene sets' leading edges. If the calculated distance metric is lower than
 #' the given threshold (i.e. the gene sets have highly overlapping leading edge genes),
 #' these gene sets will be joined to a single gene set "cluster."
@@ -16,9 +16,8 @@
 #' We recommend the 'binary' (also known as Jaccard) distance.
 #' @param returns Either "signif" or "all". This argument defines whether only significantly
 #' enriched gene sets are included in the output table, or if the full results are included.
-#' Regardless of this selection, only significantly enriched gene sets (as defined in
-#' mHG.to.LEdge or mHG.to.LEdge.multi) are clustered.
-#' @return A data frame including the mHG results, plus two additional columns for the clustering
+#' Regardless of this selection, only significantly enriched gene sets are clustered.
+#' @return A data frame including the FGSEA results, plus two additional columns for the clustering
 #' results
 #' @return \item{Cluster} The cluster that the gene set was assigned to. Gene sets in the same
 #' cluster have a distance below the join.threshold.
