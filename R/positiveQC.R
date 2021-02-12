@@ -3,24 +3,48 @@
 #' Calculate the linearity and scale factors of positive control genes, and
 #' plot the expected vs. observed counts for each sample.
 #'
-#' @param nsRaw Raw NanoString data, processed by `processNanostringData` with
-#' normalization set to 'none'.
+#' @param ns NanoString data, processed by `processNanostringData` with
+#' normalization set to 'none' or with output.format set to 'list'.
 #' @param samples A subset of samples to analyze (either a vector of sample names,
 #' or column indexes). If NULL (default), will include all samples.
+#' @param expected The expected values of each positive control gene, as a 
+#' numeric vector. These are frequently provided by NanoString in the 'Name' 
+#' field of the genes, in which case those values will be read automatically 
+#' and this option can be left as NULL (the default).
 #' @return A list containing:
 #' \item{tab}{The table of positive control statistics, included the positive
 #' scale factor and the R-squared value for the expected vs. measured counts}
 #' \item{plt}{An object containing the positive control plots. This gets
 #' cumbersome if there are lots of samples.}
 
-positiveQC <- function(nsRaw, samples = NULL) {
+positiveQC <- function(ns, samples = NULL, expected = NULL) {
   
-  if (nsRaw$normalization[1] != "none") {
-    stop("Raw NanoString data must be provided. Use normalization='none'
-         in `processNanostringData`.")
+  #Log-transform the expected values if provided.
+  if (!is.null(expected)) {
+    expected <- log2(expected)
   }
   
-  dat.pos <- as.data.frame(log2(exprs(nsRaw)[fData(nsRaw)$CodeClass == "Positive",]))
+  if (class(ns) == "list") {
+    dat.pos <- as.data.frame(log2(ns$exprs.raw[ns$dict.raw$CodeClass == "Positive",]))
+    
+    # Identify the expected value for each positive control
+    if (is.null(expected)) {
+      expected <- log2(as.numeric(gsub(".*\\(|\\)", "", ns$dict.raw$Name[ns$dict.raw$CodeClass == "Positive"])))
+    }
+    
+  } else {
+    if (ns$normalization[1] != "none") {
+      stop("Raw NanoString data must be provided. Use normalization='none'
+         or output.format='list' in `processNanostringData`.")
+    }
+    dat.pos <- as.data.frame(log2(exprs(ns)[fData(ns)$CodeClass == "Positive",]))
+    
+    # Identify the expected value for each positive control
+    if (is.null(expected)) {
+      expected <- log2(as.numeric(gsub(".*\\(|\\)", "", fData(ns)$Name[fData(ns)$CodeClass == "Positive"])))
+    }
+  }
+  
   
   # Use a subset of samples, if indicated
   if (!is.null(samples)) {
@@ -30,9 +54,6 @@ positiveQC <- function(nsRaw, samples = NULL) {
   # Calculate positive scale factors
   laneGM <- sapply(dat.pos, gm_mean)
   scale.factor <- laneGM / mean(laneGM)
-  
-  # Identify the expected value for each positive control
-  expected <- log2(as.numeric(gsub(".*\\(|\\)", "", fData(nsRaw)$Name[fData(nsRaw)$CodeClass == "Positive"])))
   
   # Calculate r-squared for each sample
   rsq <- sapply(dat.pos, function(vec) cor(vec, expected) ^ 2)

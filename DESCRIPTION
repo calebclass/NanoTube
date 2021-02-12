@@ -4,10 +4,10 @@ Title: An Easy Pipeline for NanoString nCounter Data Analysis
 Version: 0.1.0
 Date: 2020-08-11
 Author: Caleb A. Class
-Maintainer: Caleb A. Class <caclass@mdanderson.org>
-Imports: limma, NanoStringDiff, reshape, mHG
+Maintainer: Caleb A. Class <cclass@butler.edu>
+Imports: limma, reshape, mHG
 Depends: Biobase
-Suggests: shiny, rlang, plotly, knitr, kableExtra, ggplot2, grid, ruv
+Suggests: shiny, NanoStringDiff, rlang, plotly, knitr, kableExtra, ggplot2, grid, ruv
 VignetteBuilder: knitr
 Description: NanoTube includes functions for the processing, analysis, and plotting of NanoString nCounter data.
 License: GPL-2

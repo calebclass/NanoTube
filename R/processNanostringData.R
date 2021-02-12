@@ -55,7 +55,7 @@ processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, idCol = NULL, groupCol = NULL, replicateCol = NULL,
                                   normalization = c("nSolver", "RUV", "none"),
                                   bgType = c("threshold", "t.test"),
-                                  bgThreshold = 3, bgProportion = 0.5, bgPVal = 0.001, bgSubtract = FALSE,
+                                  bgThreshold = 2, bgProportion = 0.5, bgPVal = 0.001, bgSubtract = FALSE,
                                   housekeeping = NULL, skip.housekeeping = FALSE,
                                   includeQC = FALSE,
                                   sampIds = NULL,
@@ -144,11 +144,19 @@ processNanostringData <- function(nsFiles,
     dupSamps <- names(table(sampIds)[table(sampIds) > 1])
     
     if (normalization == "RUV") {
-      # Use all genes as control genes to start (recommendation by RUV authors)
       cat("\nConducting RUV normalization......",
           file=logfile, append=TRUE)
+      
+      # Save a copy of the raw expression data
+      dat$exprs.raw <- dat$exprs
+      dat$samples.raw <- dat$samples
+      dat$dict.raw <- dat$dict
+      
+      # Normalize using RUV
+      # Use all genes as control genes to start (recommendation by RUV authors)
       dat$exprs <- t(ruv::RUVIII(t(log2(dat$exprs+0.5)), M = sampIds,
                                     ctl = 1:nrow(dat$exprs), k = NULL))
+      
     } else {
       cat("\nAveraging technical replicates.....",
           file=logfile, append=TRUE)
@@ -163,7 +171,6 @@ processNanostringData <- function(nsFiles,
     if (includeQC) dat$qc <- dat$qc[!duplicated(sampIds),]
     if ("groups" %in% names(dat)) dat$groups <- dat$groups[!duplicated(sampIds)]
   }
-
   
   # Normalize using nSolver recommended method:
   if (normalization == "nSolver") {
@@ -187,11 +194,21 @@ processNanostringData <- function(nsFiles,
       dat.norm <- normalize_housekeeping(dat.norm, housekeeping)
     }
     
-    dat <- dat.norm
+    # Save a copy of the raw data (only used if output.format == "list")
+    dat.out <- dat.norm
+    dat.out$exprs.raw <- dat$exprs
+    dat.out$dict.raw <- dat$dict
+    dat <- dat.out
   }
   
   if (output.format == "list") {
     dat$normalization <- normalization
+    
+    if (normalization == "none") {
+      dat$exprs.raw <- dat$exprs
+      dat$dict.raw <- dat$dict
+    }
+    
     return(dat)
     
   } else {

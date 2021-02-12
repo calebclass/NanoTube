@@ -63,8 +63,8 @@ runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
                                               do not have the same number of samples.")
   }
   
-  fit <- lmFit(dat.limma, design)
-  limmaFit <- eBayes(fit)
+  fit <- limma::lmFit(dat.limma, design)
+  limmaFit <- limma::eBayes(fit)
   limmaFit$q.value <- limmaFit$p.value
   for (i in 1:ncol(limmaFit$q.value)) limmaFit$q.value[,i] <- p.adjust(limmaFit$p.value[,i], method = "BH")
 

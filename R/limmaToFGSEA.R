@@ -8,8 +8,8 @@
 #' @param gene.sets Gene set file name, in .rds (list), .gmt, or .tab format;
 #' or a list object containing the gene sets. Gene names must be
 #' in the same form as in the ranked.list.
-#' @param sourceDB Source database to include, only if using a .tab-format 
-#' geneset.file from CPDB.
+#' @param sourceDB Source database to include (only if using a .tab-format 
+#' geneset.file from CPDB).
 #' @param min.set Number of genes required to conduct analysis on a given gene 
 #' set (default = 1). If fewer than this number of genes from limmaResults are 
 #' included in a gene set, that gene set will be skipped for this analysis.

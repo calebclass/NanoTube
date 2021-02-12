@@ -1,63 +1,95 @@
 ---
 title: "Analyzing NanoString nCounter Data with the NanoTube"
 author: "Caleb A Class"
-runtime: shiny
 output: html_document:
     toc: true
     toc_depth: 2
 ---
 
-```{r prep, include = FALSE}
-
-library(knitr)
-
-```
 
 # Abstract
 
 
+
+
 # A basic workflow
-`processNanoStringData` allows you to read in nCounter expression data (from
+`processNanostringData` allows you to read in nCounter expression data (from
 RCC files or in tabular form) and conduct basic normalization and quality
 control checks in one step. We use example data from GEO data series 
 GSE117751 (Lundy et al, 2018).
 
 ```{r Basic1}
-
 library(NanoTube)
 
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 
+```
 
+A variety of data processing and normalization are provided in `processNanostringData`.
+A set of default options recommended by nCounter can be run automatically, or
+they can be specified using the options. More details are provided in the "Processing
+Data" section.
+
+```{r Basic2}
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis")
+
+```
+There are three groups of samples being compared in this data set.
+
+```{r BasicGroups}
+
+table(dat$groups)
 
 ```
 
 You can then run differential expression analysis using Limma. Functions are
-also provided to allow for analysis using NanoStringDiff.
+also provided to allow for analysis using NanoStringDiff (See 'Differential 
+expression analysis - Using NanoStringDiff').
 
-```{r Basic2}
+```{r Basic3}
+
+limmaResults <- runLimmaAnalysis(dat, base.group = "None")
 
 ```
 
-DE results can be viewed or exported using `makeDiffExprFile`.
+DE results can be viewed or exported using `makeDiffExprFile`. For example, we
+can convert the differential expression statistics to a table for easier Viewing.
 
 ```{r Basic3}
+
+limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
+limmaStats <- as.data.frame(limmaStats)
+
+# Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
+limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, decreasing = FALSE), ]
 
 ```
 
 DE results can also be used as input for gene set analysis in the `fgsea` package, 
-using `limmaToFGSEA` or `nsdiffToFGSEA`.
+using `limmaToFGSEA` or `nsdiffToFGSEA`. Gene sets can be provided in .gmt, .tab,
+or .rds (list object) format, or a list can be input directly.
 
 ```{r Basic4}
 
+# For this example, we'll load the hallmark sets from the msigdbr library.
+gene_sets <- msigdbr::msigdbr(species = "Homo sapiens", category = "H")
+
+# Convert to list form for FGSEA.
+gene_sets_list <- split(x = gene_sets$gene_symbol, f = gene_sets$gs_name)
+
+# Run FGSEA
+gseaResults <- limmaToFGSEA(limmaResults, gene.sets = gene_sets_list)
+
+# FGSEA was run separately for Autoimmune Retinopathy vs. None and 
+# Retinitis Pigmentosa vs. None
+names(gseaResults)
+
+head(gseaResults$Autoimmune.retinopathy[order(gseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),])
+
 ```
-
-Gene set analysis results can be exported or plotted.
-
-```{r Basic5}
-
-```
-
 
 
 # Processing Data
@@ -67,21 +99,48 @@ for each sample, containing the counts for each gene and control in the
 codeset. It also includes some basic quality control (QC) metrics that can
 by imported by NanoTube. Two functions are provided in this package: 
 `read_rcc`, which reads in a single RCC file, and `read_merge_rcc` which reads
-in a vector of RCC file names and combines the data. `processNanostringData`
-also has the 
+in a vector of RCC file names and combines the data. 
+
+`processNanostringData` includes the reading of these data files, in addition to 
+optional quality control and normalization steps. These are described in the
+'Quality Control' and 'Normalization' sections. Normalization can be skipped
+in this function using `normalization = "None"`.
+
+```{r proc1}
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01,
+                             skip.housekeeping = FALSE)
+
+```
 
 ## From Other files
+Expression data can also be imported from a table in a .txt or .csv file, possibly 
+produced by the RCC Collector tool.
+
+```{r proc2}
+
+csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
+
+dat <- processNanostringData(nsFile = csv_data,
+                             sampleTab = sample_data, 
+                             idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
+                             normalization = "None")
+
+```
 
 
 
 # Quality Control
 NanoTube provides the quality control metrics recommended for NanoString
 nCounter data. The raw NanoString data can be loaded for QC using the 
-`normalization = "none"` option of `processNanostringData`.
+`output.format = "list"` option of `processNanostringData`.
 
 ```{r qc1}
 
-dat <- processNanostringData(example_data, normalization = "none",
+dat <- processNanostringData(example_data, output.format = "list",
                              includeQC = TRUE)
 
 ```
@@ -89,7 +148,7 @@ Basic QC and cartridge data are loaded in from the RCC files if `includeQC` is s
 
 ```{r qc2}
 
-head(pData(dat)[,-1])
+head(dat$qc)
 
 ```
 
@@ -99,7 +158,7 @@ positive control counts. NanoString recommends positive scaling factors between
 0.3 and 3, and R-squared values greater than 0.95. Samples with values outside
 these recommendations should be investigated further. 
 
-```{r qc3}
+```{r qcPos1}
 
 posQC <- positiveQC(dat)
 
@@ -111,7 +170,7 @@ kable(head(posQC$tab),
 Positive control genes can be plotted for all samples (default), or a specified
 subset of samples (specified by column index, or sample names).
 
-```{r qc4}
+```{r qcPos2}
 
 posQC2 <- positiveQC(dat, samples = 1:6)
 
@@ -119,4 +178,60 @@ posQC2$plt
 
 ```
 
+
+Standard negative control statistics can be obtained using the `negativeQC` 
+function.
+
+```{r qcNeg1}
+
+negQC <- negativeQC(dat, interactive.plot = FALSE)
+
+kable(head(negQC$tab), 
+      row.names = TRUE, format = "html")
+
+```
+
+Negative control genes can also be plotted for each sample.
+
+```{r qcNeg2, fig.height = 7}
+
+negQC$plt
+
+```
+
+Housekeeping normalization scale factors can also be obtained from the
+processed data. Manufacturers recommend additional caution if these scale factors
+are outside the range of 0.1-10.
+
+```{r qcHK1}
+head(dat$hk.scalefactors)
+```
+
+# Data Analysis
+## Principal components analysis
+
+PCA can be conducted after processing and normalization.
+
+```{r pca}
+
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+  
+nanostringPCA(dat, pc1=1, pc2=2, interactive.plot = TRUE)$plt
+
+```
+
+```{r pca2}
+
+nanostringPCA(dat, pc1=3, pc2=4, interactive.plot = FALSE)$plt
+
+```
+
+## Differential expression analysis
+### Using Limma
+
+
+
+### Using NanoStringDiff
 

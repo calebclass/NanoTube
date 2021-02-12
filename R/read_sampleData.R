@@ -28,8 +28,8 @@ read_sampleData <- function(dat, file.name, idCol = NULL, groupCol, replicateCol
   
   # Set the sample ID's
   if (is.null(idCol)) {
-    warn(paste0("\nidCol not provided. Assuming the first column of '",
-                file.name, "' contains sample ID's.\n"))
+    warning(paste0("\nidCol not provided. Assuming the first column of '",
+                gsub(".*\\/", "", file.name), "' contains sample ID's.\n"))
     
     rownames(sampDat) <- sampDat[,1]
   }
@@ -38,7 +38,7 @@ read_sampleData <- function(dat, file.name, idCol = NULL, groupCol, replicateCol
       rownames(sampDat) <- sampDat[,idCol]
     } else {
       stop(paste0("\n'", idCol, "' is not one of the columns in '",
-                  file.name, "'.\n"))
+                  gsub(".*\\/", "", file.name), "'.\n"))
     }
   }
   
@@ -54,7 +54,7 @@ read_sampleData <- function(dat, file.name, idCol = NULL, groupCol, replicateCol
       dat$samples <- sampDat
       rownames(dat$samples) <- colnames(dat$exprs)
       
-      warn("\nSample names in the two files don't match. NanoTube is assuming
+      warning("\nSample names in the two files don't match. NanoTube is assuming
            that samples are in the same order. Please confirm with your data.\n")
     }
   } else {
