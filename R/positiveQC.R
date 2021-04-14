@@ -2,6 +2,8 @@
 #'
 #' Calculate the linearity and scale factors of positive control genes, and
 #' plot the expected vs. observed counts for each sample.
+#' 
+#' @export
 #'
 #' @param ns NanoString data, processed by `processNanostringData` with
 #' normalization set to 'none' or with output.format set to 'list'.

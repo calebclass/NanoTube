@@ -4,18 +4,55 @@
 \alias{processNanostringData}
 \title{Process NanoString nCounter gene expression data.}
 \usage{
-processNanostringData(fileDirs, bgType = c("threshold", "t.test"),
-  bgThreshold = 3, bgProportion = 0.5, bgPVal = 0.001,
-  housekeeping = NULL, skip.housekeeping = FALSE, includeQC = FALSE,
-  sampIds = NULL, logfile = "")
+processNanostringData(
+  nsFiles,
+  sampleTab = NULL,
+  idCol = NULL,
+  groupCol = NULL,
+  replicateCol = NULL,
+  normalization = c("nSolver", "RUV", "none"),
+  bgType = c("threshold", "t.test"),
+  bgThreshold = 2,
+  bgProportion = 0.5,
+  bgPVal = 0.001,
+  bgSubtract = FALSE,
+  housekeeping = NULL,
+  skip.housekeeping = FALSE,
+  includeQC = FALSE,
+  sampIds = NULL,
+  output.format = c("ExpressionSet", "list"),
+  logfile = ""
+)
 }
 \arguments{
-\item{fileDirs}{file directory (or zip file) containing the .rcc files, or multiple directories in
-a character vector.}
+\item{nsFiles}{file path (or zip file) containing the .rcc files, or multiple directories in
+a character vector, or a single text/csv file containing the combined counts.}
 
-\item{bgType}{type of background correction to use: "threshold" sets a thresold for N standard deviations
-above the mean of negative controls. "t.test" conducts a one-sided t test for each gene against all
-negative controls.}
+\item{sampleTab}{.txt (tab-delimited) or .csv (comma-delimited) file containing sample data
+table (optional, default NULL)}
+
+\item{idCol}{the column name of the sample identifiers in the sample table,
+which should correspond to the column names in the count table 
+(default NULL: will assume the first column contains the sample identifiers)}
+
+\item{groupCol}{the column name of the group identifiers in the sample table (required
+if sampleTab is provided).}
+
+\item{replicateCol}{the column name of the technical replicate identifiers 
+(default NULL). Multiple replicates of the same sample will have the same value in 
+this column. Replicates are used to improve normalization performance in the
+"RUV" method; otherwise they are averaged.}
+
+\item{normalization}{If "nSolver" (default), continues with background, positive 
+control, and housekeeping control normalization steps to return
+a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
+controls, housekeeping genes and technical replicates. If "none", returns a 
+NanoStringSet with the raw counts, suitable for running NanoStringDiff.}
+
+\item{bgType}{Only if (normalization=="nSolver"): Type of background correction to use: 
+"threshold" sets a threshold for N standard deviations above the mean of 
+negative controls. "t.test" conducts a one-sided t test for each gene against 
+all negative controls.}
 
 \item{bgThreshold}{If bgType=="threshold", number of sd's above the mean to set as threshold
 for background correction.}
@@ -25,23 +62,35 @@ be included in analysis.}
 
 \item{bgPVal}{If bgType=="t.test", p-value threshold to use for gene to be included in analysis.}
 
+\item{bgSubtract}{Should calculated background levels be subtracted from reported expressions?
+If TRUE, will subtract mean+numSD*sd of the negative controls from the endogenous genes,
+and then set negative values to zero (default FALSE)}
+
 \item{housekeeping}{vector of genes (symbols or accession) to use for housekeeping correction. If NULL,
-will use genes listed in .rcc files as "Housekeeping"}
+will use genes listed as "Housekeeping" under CodeClass.}
 
-\item{skip.housekeeping}{Skip housekeeping normalization?}
+\item{skip.housekeeping}{Skip housekeeping normalization? (default FALSE)}
 
-\item{includeQC}{Should we include the QC when reading in .rcc files? This can cause errors,
+\item{includeQC}{Should we include the QC from the .rcc files? This can cause errors,
 particularly when reading in files from multiple experiments.}
 
 \item{sampIds}{a vector of sample identifiers, important if there are technical replicates.
-Currently, this function averages technical replicates.}
+Currently, this function averages technical replicates. sampIds will be extracted
+from the replicateCol in the sampleTab, if provided.}
+
+\item{output.format}{If "list", will return the normalized (optional) and raw expression data,
+as well as various QC and relevant information tables. If "ExpressionSet" (default),
+will convert to an n*p ExpressionSet, with n rows representing genes and
+p columns representing samples.}
 
 \item{logfile}{a filename for the logfile (optional). If blank, will print warnings to screen.}
 }
 \value{
-An rds file containing the raw and normalized counts, sample and qc info (from rcc files), and dictionary
+An list or ExpressionSet containing the raw and/or normalized counts, dictionary,
+and sample info if provided
 }
 \description{
-This function reads in a zip file or folder containing multiple .rcc files, and then conducts positive
-control normalization, background correction, and housekeeping normalization.
+This function reads in a zip file or folder containing multiple .rcc files 
+(or a txt/csv file containing raw count data), and then optionally conducts 
+positive control normalization, background correction, and housekeeping normalization.
 }

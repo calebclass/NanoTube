@@ -2,6 +2,8 @@
 #'
 #' Provide a table the negative control statistics, and plot the counts of 
 #' negative control genes in each sample.
+#' 
+#' @export
 #'
 #' @param ns NanoString data, processed by `processNanostringData` with
 #' output.format set to 'list' and 'nSolver' normalization.

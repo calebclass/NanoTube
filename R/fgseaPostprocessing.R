@@ -2,6 +2,8 @@
 #'
 #' Clusters GSEA results by leading edge genes, and writes reports showing
 #' gene expression profiles of these genes.
+#' 
+#' @export
 #'
 #' @param genesetResults Results from pathway analysis using limmaToFGSEA.
 #' @param leadingEdge Results from fgseaToLEdge
@@ -14,6 +16,19 @@
 #' We recommend the 'binary' (also known as Jaccard) distance.
 #' @param filename File name for the output text file. If NULL (default), data will be returned
 #' as an R data frame.
+#' 
+#' @examples 
+#' data("ExamplePathways")
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' 
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' 
+#' fgseaPostprocessing(fgseaResults, leadingEdge, 
+#'                     limmaResults = ExampleResults,
+#'                     join.threshold = 0.5)
+
 
 fgseaPostprocessing <- function(genesetResults, leadingEdge, limmaResults,
                                join.threshold = 0.5, ngroups = NULL,

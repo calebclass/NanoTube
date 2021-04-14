@@ -3,6 +3,8 @@
 #' Scale endogenous genes by the geometric mean of housekeeping genes. This should be conducted
 #' after positive control normalization and background correction.
 #'
+#' @export
+#' 
 #' @param dat NanoString data, including expression matrix and gene dictionary.
 #' @param genes List of housekeeping genes to use for normalization. If NULL (default),
 #' will use all genes marked as "Housekeeping" in codeset.

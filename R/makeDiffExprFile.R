@@ -3,19 +3,31 @@
 #' Make a data frame or text file containing coefficients, p-, and q-values from Limma
 #' differential expression analysis. If returns == "all", will also center the log-expression
 #' data on median of base.group expression and include the expression data in the output.
-#'
+#' 
+#' @export
+#' 
 #' @param limmaResults Result from runLimmaAnalysis
 #' @param filename The desired name for the output tab-delimited text file. If NULL (default)
 #' the resulting table will be returned as an R data frame.
 #' @param returns If "all" (default), will center the log-expression
 #' data on median of base.group expression and include the expression data in the output. If
 #' "stats", will only include the differential expression statistics.
+#' 
+#' @examples 
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' # Include expression data in the results table
+#' deResults <- makeDiffExprFile(limmaResults, returns = "all")
+#' 
+#' # Not Run: Only include statistics, and save to a .txt file
+#' makeDiffExprFile(limmaResults, file = "DE.txt",
+#'                  returns = "stats")
 
 makeDiffExprFile <- function(limmaResults, filename = NULL,
                              returns = c("all", "stats"),
                              skipFirst = TRUE) {
-  dat.scaled <- Biobase::exprs(limmaResults$eset) -
-    apply(Biobase::exprs(limmaResults$eset)[,limmaResults$eset$group == levels(limmaResults$eset$group)[1]], 1, median)
+  dat.scaled <- exprs(limmaResults$eset) -
+    apply(exprs(limmaResults$eset)[,limmaResults$eset$group == levels(limmaResults$eset$group)[1]], 1, median)
 
   dat.scaled <- dat.scaled[,order(limmaResults$eset$group)]
 

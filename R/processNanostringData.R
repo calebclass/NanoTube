@@ -3,6 +3,8 @@
 #' This function reads in a zip file or folder containing multiple .rcc files 
 #' (or a txt/csv file containing raw count data), and then optionally conducts 
 #' positive control normalization, background correction, and housekeeping normalization.
+#' 
+#' @export
 #'
 #' @param nsFiles file path (or zip file) containing the .rcc files, or multiple directories in
 #' a character vector, or a single text/csv file containing the combined counts.

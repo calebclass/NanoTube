@@ -3,6 +3,8 @@
 #' Extract leading edge genes from gene sets identified in fgsea analysis.
 #' Gene sets may be filtered by significance or NES.
 #' 
+#' @export
+#' 
 #' @param fgsea.res Result from limmaToFGSEA
 #' @param cutoff.type Filter gene sets by adjusted p-value ('padj'), nominal
 #' p-value ('pval'), normalized enrichment score ('NES'), or include all gene
@@ -11,9 +13,22 @@
 #' @param nes.abs.cutoff If cutoff.type == "NES", should we use extreme positive
 #' and negative values (TRUE), or only filter in the positive or negative 
 #' direction (FALSE). If TRUE, will select gene sets with abs(NES) > cutoff. 
-#' If FALSE, will select gene sets with NES > cutoff (if cutoff > 0) or
+#' If FALSE, will select gene sets with NES > cutoff (if cutoff >= 0) or
 #' NES < cutoff (if cutoff < 0)
 #' @return a list containing the leading edge matrix for each comparison
+#' 
+#' @examples 
+#' data("ExamplePathways")
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' 
+#' # Generate the leading edge for pathways with padj < 0.1
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' 
+#' # Generate the leading edge for pathways with abs(NES) > 2
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "NES",
+#'                             cutoff = 2, nes.abs.cutoff = TRUE)
 
 fgseaToLEdge <- function(fgsea.res, cutoff.type = c("padj", "pval", "NES", "none"),
                          cutoff = 0.05, nes.abs.cutoff = TRUE) {
@@ -38,14 +53,14 @@ fgseaToLEdge <- function(fgsea.res, cutoff.type = c("padj", "pval", "NES", "none
                                     !is.na(fgsea.res[[i]][,cutoff.type])),]
     } else if (cutoff.type == "NES") {
       if (nes.abs.cutoff) {
-        fgsea.sub <- fgsea.res[[i]][abs(fgsea.res[[i]][,NES]) > cutoff & 
-                                      !is.na(fgsea.res[[i]][,NES]),]
-      } else if (cutoff > 0) {
-        fgsea.sub <- fgsea.res[[i]][fgsea.res[[i]][,NES] > cutoff & 
-                                      !is.na(fgsea.res[[i]][,NES]),]
+        fgsea.sub <- fgsea.res[[i]][abs(fgsea.res[[i]][,"NES"]) > cutoff & 
+                                      !is.na(fgsea.res[[i]][,"NES"]),]
+      } else if (cutoff >= 0) {
+        fgsea.sub <- fgsea.res[[i]][fgsea.res[[i]][,"NES"] > cutoff & 
+                                      !is.na(fgsea.res[[i]][,"NES"]),]
       } else {
-        fgsea.sub <- fgsea.res[[i]][fgsea.res[[i]][,NES] < cutoff & 
-                                      !is.na(fgsea.res[[i]][,NES]),]
+        fgsea.sub <- fgsea.res[[i]][fgsea.res[[i]][,"NES"] < cutoff & 
+                                      !is.na(fgsea.res[[i]][,"NES"]),]
       }
     } else {
       fgsea.sub <- fgsea.res[[i]]

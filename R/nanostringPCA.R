@@ -2,6 +2,8 @@
 #'
 #' Conduct principal components analysis and plot the results.
 #'
+#' @export
+#'
 #' @param ns Processed NanoString data
 #' @param pc1 Principal component to plot on x-axis (default 1)
 #' @param pc2 Principal component to plot on y-axis (default 2)

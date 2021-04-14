@@ -1,6 +1,8 @@
 #' Merge multiple .rcc files
 #'
 #' Read in multiple .rcc files named in the fileList and merge the expression data.
+#' 
+#' @export
 #'
 #' @param fileList a character vector of .rcc file names
 #' @param includeQC include merged QC data (from the "Lane Attributes" part of file) in

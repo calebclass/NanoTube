@@ -4,6 +4,8 @@
 #' the enriched gene sets' leading edges. If the calculated distance metric is lower than
 #' the given threshold (i.e. the gene sets have highly overlapping leading edge genes),
 #' these gene sets will be joined to a single gene set "cluster."
+#' 
+#' @export
 #'
 #' @param gsea.res Results from pathway analysis for a single comparison, using limmaToFSEA.
 #' @param l.edge Leading edge result from fgseaToLEdge.
@@ -18,10 +20,23 @@
 #' enriched gene sets are included in the output table, or if the full results are included.
 #' Regardless of this selection, only significantly enriched gene sets are clustered.
 #' @return A data frame including the FGSEA results, plus two additional columns for the clustering
-#' results
-#' @return \item{Cluster} The cluster that the gene set was assigned to. Gene sets in the same
-#' cluster have a distance below the join.threshold.
-#' @return \item{best} Whether the gene set is the most enriched (by p-value) in a given cluster.
+#' results:
+#' @return \item{Cluster}{The cluster that the gene set was assigned to. Gene sets in the same
+#' cluster have a distance below the join.threshold.}
+#' @return \item{best}{Whether the gene set is the most enriched (by p-value) in a given cluster.}
+#' 
+#' @examples 
+#' data("ExamplePathways")
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' 
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' 
+#' Group the results, and only returns those satisfying the cutoff specified in leadingEdge()
+#' groupedResults <- groupFGSEA(fgseaResults, leadingEdge,
+#'                              join.threshold = 0.5,
+#'                              returns = "signif")
 
 groupFGSEA <- function(gsea.res, l.edge,
                                join.threshold = NULL,

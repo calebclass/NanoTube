@@ -2,11 +2,28 @@
 #'
 #' Convert ExpressionSet from processNanoStringData to a NanoStringSet for use
 #' in NanoStringDiff.
+#' 
+#' @export
 #'
 #' @param eset NanoString data ExpressionSet, from processNanostringData
 #' @param designs Design matrix. If NULL, will look for "groups" column in 
 #' pData(eset).
 #' @return A NanoStringSet for NanoStringDiff
+#' 
+#' @examples 
+#' # Example data
+#' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' 
+#' # Load data without normalization
+#' dat <- processNanostringData(nsFiles = example_data,
+#'                      sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+#'                      normalization = "None")
+#'                      
+#' # Convert to NanoStringSet
+#' dat.ns <- makeNanoStringSetFromEset(dat)
+
+nsDiffSet <- makeNanoStringSetFromEset(datNoNorm)
 
 makeNanoStringSetFromEset <- function(eset, designs = NULL) {
   
@@ -18,6 +35,8 @@ makeNanoStringSetFromEset <- function(eset, designs = NULL) {
   if (is.null(designs)) {
     if ("groups" %in% colnames(pData(eset))) {
       designs <- model.matrix(~0 + eset$groups)
+      # Clean up column names
+      colnames(designs) <- gsub("eset\\$groups", "", colnames(designs))
     } else {
       stop("Must input design matrix, or include groups in sample info of eset.")
     }

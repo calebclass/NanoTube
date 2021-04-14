@@ -1,6 +1,8 @@
 #' Positive control gene normalization
 #'
 #' Scale genes by the geometric mean of positive control genes.
+#' 
+#' @export
 #'
 #' @param dat NanoString data, including expression matrix and gene dictionary.
 #' @param logfile Optional name of logfile to print warnings or errors.

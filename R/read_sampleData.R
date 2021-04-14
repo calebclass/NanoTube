@@ -3,6 +3,8 @@
 #' Read in a .txt or .csv file containing sample names, group identifiers,
 #' replicate identifiers, and any other sample data. Sample names must be in the
 #' first column and must correspond with sample names in the count data file(s).
+#' 
+#' @export
 #'
 #' @param dat expression data, read in by read_merge_rcc or read.delim
 #' @param file.name the path/name of the .txt or .csv file

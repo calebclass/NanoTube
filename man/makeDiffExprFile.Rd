@@ -4,13 +4,15 @@
 \alias{makeDiffExprFile}
 \title{Make differential expression results file.}
 \usage{
-makeDiffExprFile(limmaResults, base.group, filename = NULL,
-  returns = c("all", "stats"))
+makeDiffExprFile(
+  limmaResults,
+  filename = NULL,
+  returns = c("all", "stats"),
+  skipFirst = TRUE
+)
 }
 \arguments{
 \item{limmaResults}{Result from runLimmaAnalysis}
-
-\item{base.group}{The same "base group" as in the Limma analysis.}
 
 \item{filename}{The desired name for the output tab-delimited text file. If NULL (default)
 the resulting table will be returned as an R data frame.}

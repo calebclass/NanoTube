@@ -1,3 +1,36 @@
+#' Postprocessing for GSEA analyses for Excel
+#'
+#' Clusters GSEA results by leading edge genes, and writes reports showing
+#' gene expression profiles of these genes.
+#'
+#' @export
+#'
+#' @param genesetResults Results from pathway analysis using limmaToFGSEA.
+#' @param leadingEdge Results from fgseaToLEdge
+#' @param join.threshold The threshold distance to join gene sets. Gene sets with a distance
+#' below this value will be joined to a single "cluster."
+#' @param ngroups The desired number of gene set groups. Either 
+#' 'join.threshold' or 'ngroups' must be specified, 'ngroups' takes priority 
+#' if both are specified.
+#' @param dist.method Method for distance calculation (see options for dist()).
+#' We recommend the 'binary' (also known as Jaccard) distance.
+#' @param filename File name for the output Excel file.
+#' 
+#' @examples
+#' #' data("ExamplePathways")
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' 
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' 
+#' # Not run
+#' \dontrun{
+#' fgseaPostprocessingXLSX(fgseaResults, leadingEdge, 
+#'                     limmaResults = ExampleResults,
+#'                     join.threshold = 0.5,
+#'                     filename = "Results.xlsx")
+#' }
 
 
 fgseaPostprocessingXLSX <- function(genesetResults, leadingEdge, limmaResults,

@@ -3,6 +3,8 @@
 #' Use Limma to conduct a simple differential expression analysis. All groups are
 #' compared against the base.group, and empirical Bayes method is used to
 #' identify significantly differentially expressed genes.
+#' 
+#' @export
 #'
 #' @param dat NanoString data ExpressionSet, from processNanostringData
 #' @param groups character vector, in same order as the samples in dat. NULL

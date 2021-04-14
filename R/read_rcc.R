@@ -2,6 +2,8 @@
 #'
 #' This function reads in the .rcc files and splits into expression, sample data,
 #' and qc components.
+#' 
+#' @export
 #'
 #' @param file file name
 #' @return list containing expression data, sample attributes, and basic qc from

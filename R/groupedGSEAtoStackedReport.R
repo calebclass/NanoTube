@@ -4,16 +4,21 @@
 #' a report containing the individual gene expression profiles for genes 
 #' contained in each gene set cluster.
 #' 
+#' @export
+#' 
 #' @param grouped.gsea Output from groupFGSEA()
 #' @param leadingEdge Leading edge analysis results used in groupFGSEA()
 #' @param de.fit Differential Expression results from Limma or NanoStringDiff
 #' @param outputDir Directory for output files. If NULL (default), will return
 #' the stacked report instead of writing to a file.
+#' 
+#' @return A stacked report containing statistics and gene expression profiles
+#' for genes contained in each cluster
 
 groupedGSEAtoStackedReport <- function(grouped.gsea, leadingEdge, de.fit,
                                        outputDir=NULL) {
   
-  diffExpr.mat <- makeDiffExprFile(de.fit)
+  diffExpr.mat <- makeDiffExprFile(de.fit, returns = "all")
   Cluster <- rep(1, times=nrow(diffExpr.mat))
   names(Cluster) <- rownames(diffExpr.mat)
   diffExpr.mat <- cbind(Cluster, diffExpr.mat)

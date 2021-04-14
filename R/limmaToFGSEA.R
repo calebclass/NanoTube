@@ -4,6 +4,8 @@
 #' analysis results. Genes will be ranked by their log2 fold changes
 #' or t-statistics.
 #' 
+#' @export
+#' 
 #' @param limmaResults Result from runLimmaAnalysis.
 #' @param gene.sets Gene set file name, in .rds (list), .gmt, or .tab format;
 #' or a list object containing the gene sets. Gene names must be
@@ -20,6 +22,18 @@
 #' uninteresting for GSEA (default TRUE).
 #' @return A list containing data frames with the fgsea results for each 
 #' comparison. 
+#' 
+#' @examples 
+#' data("ExamplePathways")
+#' data("ExampleResults") # Results from runLimmaAnalysis
+#' 
+#' # Use the default settings
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' 
+#' # Only include gene sets with at least 5 genes in the NanoString data set,
+#' # and rank genes by their "t" statistics.
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways,
+#'                              min.set = 5, rank.by = "t")
 
 limmaToFGSEA <- function(limmaResults, gene.sets, sourceDB = NULL,
                          min.set = 1, rank.by = c('coefficients', 't'),

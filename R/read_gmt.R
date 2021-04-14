@@ -1,6 +1,8 @@
 #' Read .gmt file.
 #'
 #' Read in a .gmt gene set file. From the qusage library.
+#' 
+#' @export
 #'
 #' @param file The filename
 #'

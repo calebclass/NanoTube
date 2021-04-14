@@ -2,6 +2,8 @@
 #'
 #' Compare endogenous gene expression data against negative control genes. and
 #' remove data for genes that fail the comparison.
+#' 
+#' @export
 #'
 #' @param dat Positive control-scaled NanoString data
 #' @param mode Either "threshold" (default) or "t.test". If "threshold", requires proportionReq

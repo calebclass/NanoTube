@@ -1,6 +1,8 @@
 #' Unzip
 #'
 #' Unzips provided list of directories
+#' 
+#' @export
 #'
 #' @param fileDirs character list of zip files
 #' @return Unzipped directories

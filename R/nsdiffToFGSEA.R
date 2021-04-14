@@ -4,6 +4,8 @@
 #' NanoStringDiff analysis results. Genes will be ranked by their log2 fold
 #' changes.
 #' 
+#' @export
+#' 
 #' @param limmaResults Result from runLimmaAnalysis.
 #' @param gene.sets Gene set file name, in .rds (list), .gmt, or .tab format;
 #' or a list object containing the gene sets. Gene names must be

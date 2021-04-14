@@ -18,3 +18,6 @@ The geometric mean
 \description{
 Calculates the geometric mean of a numeric vector
 }
+\examples{
+gm_mean(c(1, 3, 5))
+}
