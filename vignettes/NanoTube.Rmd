@@ -39,7 +39,7 @@ GSE117751 [@lundy_t_2018]. For this example, RCC files are provided in
 library(NanoTube)
 
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 
 ```
 
@@ -52,7 +52,7 @@ characteristics table (if provided), and outputs as an Biobase ExpressionSet.
 ```{r Basic2, warning = FALSE}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
                              logfile = "log.txt")
 
 ```
@@ -136,12 +136,14 @@ in a vector of RCC file names and combines the data.
 `processNanostringData` includes the reading of these data files, in addition to 
 optional quality control and normalization steps. These are described in the
 'Quality Control' and 'Normalization' sections. Normalization can be skipped
-in this function using `normalization = "None"`.
+in this function using `normalization = "None"`. The housekeeping normalization
+step can be skipped (retaining positive control normalization) using
+`skip.housekeeping = TRUE`.
 
 ```{r proc1}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              skip.housekeeping = FALSE,
@@ -158,7 +160,7 @@ produced by the RCC Collector tool.
 csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
 
 dat2 <- processNanostringData(nsFile = csv_data,
-                             sampleTab = sample_data, 
+                             sampleTab = sample_info, 
                              idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
                              normalization = "None")
 
@@ -206,7 +208,7 @@ using `skip.housekeeping = TRUE`.
 hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              housekeeping = hk.genes, skip.housekeeping = FALSE)
@@ -300,7 +302,7 @@ plot using `ggplot2` or an interactive plot using `plotly` (use the
 ```{r pca, warning = FALSE}
 
 dat <- processNanostringData(example_data, 
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
                              normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
 
 library(plotly) # Needed to use %>% operator within function, or to add more facets
@@ -418,7 +420,7 @@ unnormalized, data to a `NanoStringSet` for use with NanoStringDiff.
 
 # Remember to set normalization = "None"
 datNoNorm <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
                              normalization = "None")
 
 nsDiffSet <- makeNanoStringSetFromEset(datNoNorm)

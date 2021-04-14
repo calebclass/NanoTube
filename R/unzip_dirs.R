@@ -5,7 +5,7 @@
 #' @export
 #'
 #' @param fileDirs character list of zip files
-#' @return Unzipped directories
+#' @return Names of now-unzipped directories
 
 unzip_dirs <- function(fileDirs) {
   print(getwd())

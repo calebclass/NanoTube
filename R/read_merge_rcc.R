@@ -1,6 +1,7 @@
 #' Merge multiple .rcc files
 #'
 #' Read in multiple .rcc files named in the fileList and merge the expression data.
+#' This step is conducted within processNanostringData.
 #' 
 #' @export
 #'
@@ -8,6 +9,16 @@
 #' @param includeQC include merged QC data (from the "Lane Attributes" part of file) in
 #' the output? Default FALSE
 #' @param logfile a filename for the logfile (optional). If blank, will print warnings to screen.
+#' 
+#' @return A list object including:
+#' \item{exprs}{The expression matrix}
+#' \item{dict}{The gene dictionary}
+#' \item{qc}{QC metrics included in the .rcc files, if includeQC == TRUE}
+#' 
+#' @examples 
+#' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+#' 
+#' dat <- read_merge_rcc(list.files(example_data, full.names = TRUE))
 
 read_merge_rcc <- function(fileList, includeQC = FALSE, logfile = "") {
   dat <- lapply(fileList, read_rcc)

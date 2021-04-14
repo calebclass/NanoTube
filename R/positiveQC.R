@@ -18,6 +18,26 @@
 #' scale factor and the R-squared value for the expected vs. measured counts}
 #' \item{plt}{An object containing the positive control plots. This gets
 #' cumbersome if there are lots of samples.}
+#' 
+#' #' @examples
+#' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' 
+#' # Process and normalize data first
+#' dat <- processNanostringData(example_data, 
+#'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+#'                              normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+#' 
+#' # Generate positive QC metrics for all samples
+#' posQC <- positiveQC(dat) 
+#' 
+#' # View positive QC table & plot
+#' posQC$tab
+#' posQC$plt
+#' 
+#' # Plot for only the first three samples
+#' posQC <- positiveQC(dat, samples = 1:3)
+#' posQC$plt
 
 positiveQC <- function(ns, samples = NULL, expected = NULL) {
   
