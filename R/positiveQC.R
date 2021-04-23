@@ -13,7 +13,7 @@
 #' numeric vector. These are frequently provided by NanoString in the 'Name' 
 #' field of the genes, in which case those values will be read automatically 
 #' and this option can be left as NULL (the default).
-#' @return A list containing:
+#' @return A list object containing:
 #' \item{tab}{The table of positive control statistics, included the positive
 #' scale factor and the R-squared value for the expected vs. measured counts}
 #' \item{plt}{An object containing the positive control plots. This gets

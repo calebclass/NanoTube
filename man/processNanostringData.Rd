@@ -94,3 +94,40 @@ This function reads in a zip file or folder containing multiple .rcc files
 (or a txt/csv file containing raw count data), and then optionally conducts 
 positive control normalization, background correction, and housekeeping normalization.
 }
+\examples{
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+# Process NanoString data from RCC files present in example_data folder.
+# Use standard nCounter normalization, removing genes that do
+# pass a t test against negative control genes with p < 0.05. Return the
+# result as an "ExpressionSet".
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01,
+                             output.format = "ExpressionSet")
+
+# Load NanoString data from a csv file (from NanoString's RCC Collector tool,
+# for example). Skip normalization by setting 'normalization = "none"'.
+
+csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
+dat <- processNanostringData(nsFile = csv_data,
+                              sampleTab = sample_data, 
+                              idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
+                              normalization = "none")
+                              
+# Load NanoString data from RCC files, using a threshold background level for
+# removing low-expressed genes. Also, specify which genes to use for housekeeping 
+# normalization. Save the result in "list" format (useful for some
+# QC functions) instead of an "ExpressionSet".
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "threshold", 
+                             bgThreshold = 2, bgProportion = 0.5,
+                             housekeeping = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"),
+                             output.format = "list")
+}

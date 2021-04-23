@@ -12,20 +12,25 @@
 #' @param returns If "all" (default), will center the log-expression
 #' data on median of base.group expression and include the expression data in the output. If
 #' "stats", will only include the differential expression statistics.
+#' @param skip.first Logical: Skip the first factor for gene set analysis?
+#' Frequently the first factor is the 'Intercept', which is generally 
+#' uninteresting for GSEA (default TRUE).
 #' 
 #' @examples 
 #' data("ExampleResults") # Results from runLimmaAnalysis
 #' 
 #' # Include expression data in the results table
-#' deResults <- makeDiffExprFile(limmaResults, returns = "all")
+#' deResults <- makeDiffExprFile(ExampleResults, returns = "all")
 #' 
-#' # Not Run: Only include statistics, and save to a .txt file
-#' makeDiffExprFile(limmaResults, file = "DE.txt",
+#' # Only include statistics, and save to a .txt file
+#' \dontrun{
+#' makeDiffExprFile(ExampleResults, file = "DE.txt",
 #'                  returns = "stats")
+#' }
 
 makeDiffExprFile <- function(limmaResults, filename = NULL,
                              returns = c("all", "stats"),
-                             skipFirst = TRUE) {
+                             skip.first = TRUE) {
   dat.scaled <- exprs(limmaResults$eset) -
     apply(exprs(limmaResults$eset)[,limmaResults$eset$group == levels(limmaResults$eset$group)[1]], 1, median)
 
@@ -34,7 +39,7 @@ makeDiffExprFile <- function(limmaResults, filename = NULL,
   limma.dat <- list()
 
   inc <- colnames(limmaResults$t)
-  if (skipFirst) inc <- inc[-1]
+  if (skip.first) inc <- inc[-1]
 
   for (i in inc) {
     limma.dat[[i]] <- cbind(limmaResults$coefficients[,i], limmaResults$t[,i], limmaResults$p.value[,i], limmaResults$q.value[,i])

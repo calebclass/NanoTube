@@ -17,5 +17,18 @@ A NanoStringSet for NanoStringDiff
 }
 \description{
 Convert ExpressionSet from processNanoStringData to a NanoStringSet for use
-in NanoStringDiff.
+with the NanoStringDiff package.
+}
+\examples{
+# Example data
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+# Load data without normalization
+dat <- processNanostringData(nsFiles = example_data,
+                     sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                     normalization = "none")
+                     
+# Convert to NanoStringSet
+dat.ns <- makeNanoStringSetFromEset(dat)
 }

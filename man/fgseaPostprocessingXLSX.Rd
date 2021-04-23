@@ -19,6 +19,8 @@ fgseaPostprocessingXLSX(
 
 \item{leadingEdge}{Results from fgseaToLEdge}
 
+\item{limmaResults}{Results from runLimmaAnalysis}
+
 \item{join.threshold}{The threshold distance to join gene sets. Gene sets with a distance
 below this value will be joined to a single "cluster."}
 
@@ -43,7 +45,6 @@ fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
 
 leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
 
-# Not run
 \dontrun{
 fgseaPostprocessingXLSX(fgseaResults, leadingEdge, 
                     limmaResults = ExampleResults,

@@ -7,6 +7,8 @@
 nsdiffToFGSEA(deResults, gene.sets, sourceDB = NULL, min.set = 1)
 }
 \arguments{
+\item{deResults}{Result from NanoStringDiff::glm.LRT.}
+
 \item{gene.sets}{Gene set file name, in .rds (list), .gmt, or .tab format;
 or a list object containing the gene sets. Gene names must be
 in the same form as in the ranked.list.}
@@ -17,8 +19,6 @@ geneset.file from CPDB.}
 \item{min.set}{Number of genes required to conduct analysis on a given gene 
 set (default = 1). If fewer than this number of genes from limmaResults are 
 included in a gene set, that gene set will be skipped for this analysis.}
-
-\item{limmaResults}{Result from runLimmaAnalysis.}
 }
 \value{
 A list containing data frames with the fgsea results.
@@ -27,4 +27,34 @@ A list containing data frames with the fgsea results.
 Use the fgsea library to run gene set enrichment analysis from the 
 NanoStringDiff analysis results. Genes will be ranked by their log2 fold
 changes.
+}
+\examples{
+
+\dontrun{
+ 
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+datNoNorm <- processNanostringData(nsFiles = example_data,
+                                   sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                                   normalization = "none")
+
+# Convert to NanoString Set, retaining 2 samples per group for this example
+# (will run faster, still might be slow)
+nsDiffSet <- makeNanoStringSetFromEset(datNoNorm[,c(1,2,15,16,29,30)])
+
+# Run NanoStringDiff analysis
+nsDiffSet <- NanoStringDiff::estNormalizationFactors(nsDiffSet)
+result <- NanoStringDiff::glm.LRT(nsDiffSet, 
+                                  design.full = as.matrix(pData(nsDiffSet)),
+                                  contrast = c(1, -1, 0)) #Autoimmune retinopathy vs. None
+
+# FGSEA with example pathways, only for pathways with at least 5 genes
+# analyzed in NanoString experiment
+data("ExamplePathways")
+fgseaResult <- nsdiffToFGSEA(result, gene.sets = ExamplePathways,
+                             min.set = 5)
+
+
+}
 }

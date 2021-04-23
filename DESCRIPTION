@@ -7,7 +7,7 @@ Author: Caleb A. Class
 Maintainer: Caleb A. Class <cclass@butler.edu>
 Depends: R (>= 3.5.0), Biobase, ggplot2
 Imports: fgsea, limma, reshape
-Suggests: grid, kableExtra, knitr, NanoStringDiff, pheatmap, plotly, rlang, ruv, shiny, testthat, xlsx
+Suggests: grid, kableExtra, knitr, NanoStringDiff, pheatmap, plotly, rlang, rmarkdown, ruv, shiny, testthat, xlsx
 VignetteBuilder: knitr
 Description: NanoTube includes functions for the processing, analysis, and plotting of NanoString nCounter data.
 License: GPL-2

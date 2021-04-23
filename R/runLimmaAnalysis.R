@@ -2,7 +2,8 @@
 #'
 #' Use Limma to conduct a simple differential expression analysis. All groups are
 #' compared against the base.group, and empirical Bayes method is used to
-#' identify significantly differentially expressed genes.
+#' identify significantly differentially expressed genes. Alternatively, a
+#' design matrix can be supplied, as explained in limma::limmaUsersGuide()
 #' 
 #' @export
 #'
@@ -17,7 +18,7 @@
 #' 
 #' @examples 
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 #' 
 #' dat <- processNanostringData(nsFiles = example_data,
 #'                              sampleTab = sample_info, groupCol = "Sample_Diagnosis",

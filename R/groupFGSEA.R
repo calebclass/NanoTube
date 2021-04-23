@@ -29,12 +29,14 @@
 #' data("ExamplePathways")
 #' data("ExampleResults") # Results from runLimmaAnalysis
 #' 
-#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+#' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways,
+#'                              min.set = 5, rank.by = "t")
 #' 
-#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.25)
 #' 
-#' Group the results, and only returns those satisfying the cutoff specified in leadingEdge()
-#' groupedResults <- groupFGSEA(fgseaResults, leadingEdge,
+#' # Group the results, and only returns those satisfying the cutoff specified in leadingEdge()
+#' groupedResults <- groupFGSEA(fgseaResults$Autoimmune.retinopathy, 
+#'                              leadingEdge$Autoimmune.retinopathy,
 #'                              join.threshold = 0.5,
 #'                              returns = "signif")
 

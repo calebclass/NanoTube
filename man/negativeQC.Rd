@@ -11,16 +11,33 @@ negativeQC(ns, interactive.plot = FALSE)
 output.format set to 'list' and 'nSolver' normalization.}
 
 \item{interactive.plot}{Generate an interactive plot using plotly? Only 
-recommended for fewer than 20 samples (default FALSE)
+recommended for fewer than 20 samples (default FALSE)}
+}
+\value{
+A list object containing:
 \item{tab}{The table of negative control statistics, including the mean
 & standard deviation of negative control genes, calculated background
 threshold, and number of endogenous genes below that threshold}
-\item{plt}{An object containing the negative control plots.}}
-
-\item{numSD}{The number of standard deviations above the mean of negative
-control gene expression to consider the "background" level (default 2).}
+\item{plt}{An object containing the negative control plots.}
 }
 \description{
 Provide a table the negative control statistics, and plot the counts of 
 negative control genes in each sample.
+}
+\examples{
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+# Process and normalize data first
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", bgType = "threshold", 
+                             bgThreshold = 2, bgProportion = 0.5,
+                             output.format = "list")
+
+negQC <- negativeQC(dat, interactive.plot = FALSE) 
+
+# View negative QC table & plot
+head(negQC$tab)
+negQC$plt
 }

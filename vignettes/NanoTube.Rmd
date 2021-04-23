@@ -8,6 +8,10 @@ output:
     toc_depth: 2
 bibliography: NanoTube.bib
 ---
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Supplementary Materials}
+-->
 
 ```{r setup, echo = FALSE, results = "hide"}
 knitr::opts_chunk$set(tidy = FALSE,
@@ -136,7 +140,7 @@ in a vector of RCC file names and combines the data.
 `processNanostringData` includes the reading of these data files, in addition to 
 optional quality control and normalization steps. These are described in the
 'Quality Control' and 'Normalization' sections. Normalization can be skipped
-in this function using `normalization = "None"`. The housekeeping normalization
+in this function using `normalization = "none"`. The housekeeping normalization
 step can be skipped (retaining positive control normalization) using
 `skip.housekeeping = TRUE`.
 
@@ -162,7 +166,7 @@ csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = 
 dat2 <- processNanostringData(nsFile = csv_data,
                              sampleTab = sample_info, 
                              idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
-                             normalization = "None")
+                             normalization = "none")
 
 ```
 ## Normalization
@@ -418,10 +422,10 @@ unnormalized, data to a `NanoStringSet` for use with NanoStringDiff.
 
 ```{r nsDiffConvert}
 
-# Remember to set normalization = "None"
+# Remember to set normalization = "none"
 datNoNorm <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, groupCol = "Sample_Diagnosis",
-                             normalization = "None")
+                             normalization = "none")
 
 nsDiffSet <- makeNanoStringSetFromEset(datNoNorm)
 

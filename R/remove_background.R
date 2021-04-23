@@ -46,6 +46,12 @@ remove_background <- function(dat,
                               numSD, proportionReq, pval,
                               subtract = FALSE) {
   
+  # Check for negative control genes in the data set
+  if (sum(dat$dict$CodeClass == "Negative") == 0) {
+    stop("Cannot conduct filtering with negative controls: No negative control 
+         genes found in input")
+  }
+  
   negative.mean <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, mean)
   negative.sd <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, sd)
   

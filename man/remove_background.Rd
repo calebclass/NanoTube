@@ -39,5 +39,23 @@ and then set negative values to zero (default FALSE)}
 }
 \description{
 Compare endogenous gene expression data against negative control genes. and
-remove data for genes that fail the comparison.
+remove data for genes that fail the comparison. This step is
+conducted within processNanostringData, when normalization is set to "nCounter".
+}
+\examples{
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+
+# Load data and positive control normalization
+dat <- read_merge_rcc(list.files(example_data, full.names = TRUE))
+dat <- normalize_pos_controls(dat)
+
+# Remove endogenous genes that fail to reject the null hypothesis
+# in a one-sided t test against negative control genes with p < 0.05.
+dat <- remove_background(dat, mode = "t.test", pval = 0.05)
+
+# Remove endogenous genes where fewer than 25\% of samples have an expression
+# 2 standard deviations above the average negative control gene. Also, 
+# subtract this background level (mean + 2*sd) from endogenous control genes. 
+dat <- remove_background(dat, mode = "threshold", 
+                         numSD = 2, proportionReq = 0.25, subtract = TRUE)
 }
