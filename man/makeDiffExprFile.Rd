@@ -8,7 +8,7 @@ makeDiffExprFile(
   limmaResults,
   filename = NULL,
   returns = c("all", "stats"),
-  skipFirst = TRUE
+  skip.first = TRUE
 )
 }
 \arguments{
@@ -20,9 +20,25 @@ the resulting table will be returned as an R data frame.}
 \item{returns}{If "all" (default), will center the log-expression
 data on median of base.group expression and include the expression data in the output. If
 "stats", will only include the differential expression statistics.}
+
+\item{skip.first}{Logical: Skip the first factor for gene set analysis?
+Frequently the first factor is the 'Intercept', which is generally 
+uninteresting for GSEA (default TRUE).}
 }
 \description{
 Make a data frame or text file containing coefficients, p-, and q-values from Limma
 differential expression analysis. If returns == "all", will also center the log-expression
 data on median of base.group expression and include the expression data in the output.
+}
+\examples{
+data("ExampleResults") # Results from runLimmaAnalysis
+
+# Include expression data in the results table
+deResults <- makeDiffExprFile(ExampleResults, returns = "all")
+
+# Only include statistics, and save to a .txt file
+\dontrun{
+makeDiffExprFile(ExampleResults, file = "DE.txt",
+                 returns = "stats")
+}
 }

@@ -23,8 +23,8 @@
 #' 
 #' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
 #' 
-#' # Generate the leading edge for pathways with padj < 0.1
-#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+#' # Generate the leading edge for pathways with padj < 0.25
+#' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.25)
 #' 
 #' # Generate the leading edge for pathways with abs(NES) > 2
 #' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "NES",
@@ -70,7 +70,7 @@ fgseaToLEdge <- function(fgsea.res, cutoff.type = c("padj", "pval", "NES", "none
       # Returning a NULL value in place of a leading edge matrix
       ledge.res[[i]] <- ""
       ledge.res[i] <- list(NULL)
-      warn("No gene sets meeting cutoff. Will return empty leading edge matrix")
+      warning("No gene sets meeting cutoff. Will return empty leading edge matrix")
     } else {
       ledge.dat <- fgsea.sub$leadingEdge
       ledge.genes <- unique(unlist(ledge.dat))

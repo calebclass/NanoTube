@@ -57,31 +57,38 @@
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 #' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 #' 
-#' # Process NanoString data without normalization.
+#' # Process NanoString data from RCC files present in example_data folder.
+#' # Use standard nCounter normalization, removing genes that do
+#' # pass a t test against negative control genes with p < 0.05. Return the
+#' # result as an "ExpressionSet".
+#' 
 #' dat <- processNanostringData(nsFiles = example_data,
 #'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-#'                              normalization = "None")
+#'                              normalization = "nSolver",
+#'                              bgType = "t.test", bgPVal = 0.01,
+#'                              output.format = "ExpressionSet")
 #' 
 #' # Load NanoString data from a csv file (from NanoString's RCC Collector tool,
-#' # for example). Use standard nCounter normalization, removing genes that do
-#' # pass a t test against negative control genes with p < 0.05.
+#' # for example). Skip normalization by setting 'normalization = "none"'.
+#' 
 #' csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
 #' dat <- processNanostringData(nsFile = csv_data,
 #'                               sampleTab = sample_data, 
 #'                               idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
-#'                               normalization = "nSolver",
-#'                               bgType = "t.test", bgPVal = 0.01,
-#'                               output.format = "ExpressionSet")
+#'                               normalization = "none")
 #'                               
 #' # Load NanoString data from RCC files, using a threshold background level for
 #' # removing low-expressed genes. Also, specify which genes to use for housekeeping 
-#' # normalization.
+#' # normalization. Save the result in "list" format (useful for some
+#' # QC functions) instead of an "ExpressionSet".
+#' 
 #' dat <- processNanostringData(nsFiles = example_data,
 #'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
 #'                              normalization = "nSolver",
 #'                              bgType = "threshold", 
 #'                              bgThreshold = 2, bgProportion = 0.5,
-#'                              housekeeping = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"))
+#'                              housekeeping = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"),
+#'                              output.format = "list")
 
 processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, idCol = NULL, groupCol = NULL, replicateCol = NULL,
@@ -169,6 +176,8 @@ processNanostringData <- function(nsFiles,
   # Or use the ID's provided directly.
   # Then average replicates, or normalize using "RUV".
   normalization <- normalization[1]
+  bgType <- bgType[1]
+  output.format <- output.format[1]
   
   if ((!is.null(sampIds) & any(duplicated(sampIds))) | normalization != "RUV") {
     if (is.null(sampIds)) sampIds <- 1:ncol(dat$exprs)

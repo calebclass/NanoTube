@@ -7,10 +7,9 @@
 #'
 #' @param ns NanoString data, processed by `processNanostringData` with
 #' output.format set to 'list' and 'nSolver' normalization.
-#' @param numSD The number of standard deviations above the mean of negative
-#' control gene expression to consider the "background" level (default 2).
 #' @param interactive.plot Generate an interactive plot using plotly? Only 
 #' recommended for fewer than 20 samples (default FALSE)
+#' @return A list object containing:
 #' \item{tab}{The table of negative control statistics, including the mean
 #' & standard deviation of negative control genes, calculated background
 #' threshold, and number of endogenous genes below that threshold}
@@ -24,9 +23,10 @@
 #' dat <- processNanostringData(example_data, 
 #'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
 #'                              normalization = "nSolver", bgType = "threshold", 
-#'                              bgThreshold = 2, bgProportion = 0.5)
+#'                              bgThreshold = 2, bgProportion = 0.5,
+#'                              output.format = "list")
 #' 
-#' negQC <- negativeQC(dat, numSD = 2, interactive.plot = FALSE) 
+#' negQC <- negativeQC(dat, interactive.plot = FALSE) 
 #' 
 #' # View negative QC table & plot
 #' head(negQC$tab)
@@ -36,6 +36,11 @@ negativeQC <- function(ns, interactive.plot = FALSE) {
   
   if (ns$normalization != "nSolver") {
     stop("Must run processNanostringData with normalization = 'nSolver' prior
+         to using this function")
+  }
+  
+  if (class(ns) != "list") {
+    stop("Must run processNanostringData with output.format = 'list' prior
          to using this function")
   }
   

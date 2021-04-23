@@ -21,8 +21,22 @@ which should correspond to the column names in the count table
 NULL). Multiple replicates of the same sample will have the same value in 
 this column.}
 }
+\value{
+The list with the expression data, now combined with the sample
+information
+}
 \description{
 Read in a .txt or .csv file containing sample names, group identifiers,
 replicate identifiers, and any other sample data. Sample names must be in the
 first column and must correspond with sample names in the count data file(s).
+}
+\examples{
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+dat <- read_merge_rcc(list.files(example_data, full.names = TRUE))
+
+# Merge expression data with sample info
+dat <- read_sampleData(dat, file.name = sample_info,
+                       groupCol = "Sample_Diagnosis")
 }

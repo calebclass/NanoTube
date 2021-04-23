@@ -10,7 +10,7 @@ unzip_dirs(fileDirs)
 \item{fileDirs}{character list of zip files}
 }
 \value{
-Unzipped directories
+Names of now-unzipped directories
 }
 \description{
 Unzips provided list of directories

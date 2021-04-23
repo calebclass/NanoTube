@@ -39,8 +39,8 @@ data("ExampleResults") # Results from runLimmaAnalysis
 
 fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
 
-# Generate the leading edge for pathways with padj < 0.1
-leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+# Generate the leading edge for pathways with padj < 0.25
+leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.25)
 
 # Generate the leading edge for pathways with abs(NES) > 2
 leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "NES",

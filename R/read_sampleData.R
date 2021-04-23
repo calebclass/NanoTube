@@ -15,6 +15,19 @@
 #' @param replicateCol the column name of the replicate identifiers (default
 #' NULL). Multiple replicates of the same sample will have the same value in 
 #' this column.
+#' 
+#' @return The list with the expression data, now combined with the sample
+#' information
+#' 
+#' @examples 
+#' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+#' sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' 
+#' dat <- read_merge_rcc(list.files(example_data, full.names = TRUE))
+#'
+#' # Merge expression data with sample info
+#' dat <- read_sampleData(dat, file.name = sample_info,
+#'                        groupCol = "Sample_Diagnosis")
 
 read_sampleData <- function(dat, file.name, idCol = NULL, groupCol, replicateCol = NULL) {
   # Read in the file

@@ -24,15 +24,12 @@
 #' dat <- processNanostringData(example_data, 
 #'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
 #'                              normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
-#'                              
+#'                                
 #' # Interactive PCA using plotly                             
 #' nanostringPCA(dat, interactive.plot = TRUE)$plt
 #' 
 #' # Static plot using ggplot2, for the 3rd and 4th PC's.
 #' nanostringPCA(dat, pc1 = 3, pc2 = 4, interactive.plot = FALSE)$plt
-
-library(plotly) # Needed to use %>% operator within function, or to add more facets
-nanostringPCA(dat, interactive.plot = TRUE)$plt
 
 nanostringPCA <- function(ns, pc1 = 1, pc2 = 2, 
                           interactive.plot = FALSE, exclude.zeros = TRUE) {
@@ -47,7 +44,7 @@ nanostringPCA <- function(ns, pc1 = 1, pc2 = 2,
   
   # If RUV normalization was used, data are already log-transformed.
   # Otherwise, log-transform with a pseudocount of 0.5
-  if (dat$normalization[1] != "RUV") pca.dat <- log2(pca.dat + 0.5)
+  if (ns$normalization[1] != "RUV") pca.dat <- log2(pca.dat + 0.5)
   
   pca <- prcomp(t(pca.dat),
                 center = TRUE, scale = TRUE)
@@ -73,6 +70,8 @@ nanostringPCA <- function(ns, pc1 = 1, pc2 = 2,
     
     layout.x$title <- paste0("PC", pc1, " (", signif(perc.var[pc1], 2), "% var)")
     layout.y$title <- paste0("PC", pc2, " (", signif(perc.var[pc2], 2), "% var)")
+    
+    `%>%` <- plotly::`%>%`
     
     plt <- plotly::plot_ly(data = pca.ly, x = ~PC1, y = ~PC2,
                            text = ~paste0("Sample: ", sample), color = ~group,

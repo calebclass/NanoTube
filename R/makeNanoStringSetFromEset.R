@@ -1,7 +1,7 @@
 #' Convert NanoString ExpressionSet to NanoStringSet
 #'
 #' Convert ExpressionSet from processNanoStringData to a NanoStringSet for use
-#' in NanoStringDiff.
+#' with the NanoStringDiff package.
 #' 
 #' @export
 #'
@@ -18,12 +18,10 @@
 #' # Load data without normalization
 #' dat <- processNanostringData(nsFiles = example_data,
 #'                      sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-#'                      normalization = "None")
+#'                      normalization = "none")
 #'                      
 #' # Convert to NanoStringSet
 #' dat.ns <- makeNanoStringSetFromEset(dat)
-
-nsDiffSet <- makeNanoStringSetFromEset(datNoNorm)
 
 makeNanoStringSetFromEset <- function(eset, designs = NULL) {
   

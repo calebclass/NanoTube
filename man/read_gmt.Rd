@@ -14,5 +14,5 @@ A list object, containing a character vector of genes for
 each gene set.
 }
 \description{
-Read in a .gmt gene set file. From the qusage library.
+Read in a .gmt gene set file. From the qusage library (Bolen C).
 }

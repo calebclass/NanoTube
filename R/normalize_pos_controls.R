@@ -6,7 +6,7 @@
 #' @export
 #'
 #' @param dat NanoString data, including expression matrix and gene dictionary.
-#' @param logfile Optional name of logfile to print warnings or errors.
+#' @param logfile Optional name of logfile to print messages, warnings or errors.
 #' 
 #' @examples
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")

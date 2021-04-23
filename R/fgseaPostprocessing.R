@@ -7,6 +7,7 @@
 #'
 #' @param genesetResults Results from pathway analysis using limmaToFGSEA.
 #' @param leadingEdge Results from fgseaToLEdge
+#' @param limmaResults Results from runLimmaAnalysis
 #' @param join.threshold The threshold distance to join gene sets. Gene sets with a distance
 #' below this value will be joined to a single "cluster."
 #' @param ngroups The desired number of gene set groups. Either 
@@ -14,8 +15,8 @@
 #' if both are specified.
 #' @param dist.method Method for distance calculation (see options for dist()).
 #' We recommend the 'binary' (also known as Jaccard) distance.
-#' @param filename File name for the output text file. If NULL (default), data will be returned
-#' as an R data frame.
+#' @param reportDir Directory for the GSEA reports (each comparison will be
+#' a separate txt file). Directory will be created if it does not exist.
 #' 
 #' @examples 
 #' data("ExamplePathways")
@@ -25,9 +26,12 @@
 #' 
 #' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
 #' 
+#' \dontrun{
 #' fgseaPostprocessing(fgseaResults, leadingEdge, 
 #'                     limmaResults = ExampleResults,
-#'                     join.threshold = 0.5)
+#'                     join.threshold = 0.5,
+#'                     reportDir = "GSEA-Results")
+#' }
 
 
 fgseaPostprocessing <- function(genesetResults, leadingEdge, limmaResults,

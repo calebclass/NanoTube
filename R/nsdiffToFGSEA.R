@@ -20,14 +20,13 @@
 #' @examples 
 #' 
 #' \dontrun{
-#' ## Not run! ##
 #'  
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 #' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 #' 
 #' datNoNorm <- processNanostringData(nsFiles = example_data,
 #'                                    sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-#'                                    normalization = "None")
+#'                                    normalization = "none")
 #'
 #' # Convert to NanoString Set, retaining 2 samples per group for this example
 #' # (will run faster, still might be slow)
@@ -45,7 +44,6 @@
 #' fgseaResult <- nsdiffToFGSEA(result, gene.sets = ExamplePathways,
 #'                              min.set = 5)
 #' 
-#' ## Not run! ##
 #' 
 #' }
 

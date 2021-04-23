@@ -9,8 +9,9 @@
 #' @param dat NanoString data, including expression matrix and gene dictionary.
 #' @param genes List of housekeeping genes to use for normalization. If NULL (default),
 #' will use all genes marked as "Housekeeping" in codeset.
+#' @param logfile Optional name of logfile to print messages, warnings or errors.
 #' 
-#' #' @examples
+#' @examples
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 #' 
 #' # Load data, positive control normalization, and background filtering

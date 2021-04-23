@@ -31,5 +31,21 @@ A list containing:
 \item{plt}{The PCA plot}
 }
 \description{
-Conduct principal components analysis and plot the results.
+Conduct principal components analysis and plot the results, using either
+ggplot2 or plotly.
+}
+\examples{
+example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+
+# Process and normalize data first
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+                               
+# Interactive PCA using plotly                             
+nanostringPCA(dat, interactive.plot = TRUE)$plt
+
+# Static plot using ggplot2, for the 3rd and 4th PC's.
+nanostringPCA(dat, pc1 = 3, pc2 = 4, interactive.plot = FALSE)$plt
 }
