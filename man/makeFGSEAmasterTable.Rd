@@ -18,8 +18,8 @@ makeFGSEAmasterTable(
 
 \item{leadingEdge}{Results from fgseaToLEdge}
 
-\item{join.threshold}{The threshold distance to join gene sets. Gene sets with a distance
-below this value will be joined to a single "cluster."}
+\item{join.threshold}{The threshold distance to join gene sets. Gene sets 
+with a distance below this value will be joined to a single "cluster."}
 
 \item{ngroups}{The desired number of gene set groups. Either 
 'join.threshold' or 'ngroups' must be specified, 'ngroups' takes priority 
@@ -28,10 +28,13 @@ if both are specified.}
 \item{dist.method}{Method for distance calculation (see options for dist()).
 We recommend the 'binary' (also known as Jaccard) distance.}
 
-\item{filename}{File name for the output text file. If NULL (default), data will be returned
-as an R data frame.}
+\item{filename}{File name for the output text file. If NULL (default), data 
+will be returned as an R data frame.}
+}
+\value{
+A table of GSEA results, clustered by similarity of leading edge.
 }
 \description{
-This function clusters GSEA results by leading edge similarity, and then combines to a
-data frame or text file.
+This function clusters GSEA results by leading edge similarity, and then 
+combines to a data frame or text file.
 }

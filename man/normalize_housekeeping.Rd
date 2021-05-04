@@ -9,15 +9,21 @@ normalize_housekeeping(dat, genes = NULL, logfile = "")
 \arguments{
 \item{dat}{NanoString data, including expression matrix and gene dictionary.}
 
-\item{genes}{List of housekeeping genes to use for normalization. If NULL (default),
-will use all genes marked as "Housekeeping" in codeset.}
+\item{genes}{List of housekeeping genes to use for normalization. If NULL 
+(default), will use all genes marked as "Housekeeping" in codeset.}
 
-\item{logfile}{Optional name of logfile to print messages, warnings or errors.}
+\item{logfile}{Optional name of logfile to print messages, warnings 
+or errors.}
+}
+\value{
+NanoString data, with expression matrix now normalized by 
+housekeeping gene expression.
 }
 \description{
-Scale endogenous genes by the geometric mean of housekeeping genes. This should be conducted
-after positive control normalization and background correction.  This step is
-conducted within processNanostringData, when normalization is set to "nCounter".
+Scale endogenous genes by the geometric mean of housekeeping genes. This 
+should be conducted after positive control normalization and background 
+correction.  This step is conducted within processNanostringData, when 
+normalization is set to "nCounter".
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
@@ -32,5 +38,5 @@ dat <- normalize_housekeeping(dat)
 
 # Normalize by specified housekeeping genes (gene symbol or accession)
 dat <- normalize_housekeeping(dat,
-                              genes = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"))
+                       genes = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"))
 }

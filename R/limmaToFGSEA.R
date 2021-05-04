@@ -46,7 +46,7 @@ limmaToFGSEA <- function(limmaResults, gene.sets, sourceDB = NULL,
     if (file.type == "rds") {
       gene.set.list <- readRDS(gene.sets)
     } else if (file.type == "gmt") {
-      gene.set.list <- read_gmt(gene.sets)
+      gene.set.list <- qusage::read.gmt(gene.sets)
     } else if (file.type == "tab") {
       gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
     } else {

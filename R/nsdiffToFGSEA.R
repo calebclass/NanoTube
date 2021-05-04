@@ -19,7 +19,7 @@
 #' 
 #' @examples 
 #' 
-#' \dontrun{
+#' \donttest{
 #'  
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 #' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
@@ -57,7 +57,7 @@ nsdiffToFGSEA <- function(deResults, gene.sets, sourceDB = NULL,
     if (file.type == "rds") {
       gene.set.list <- readRDS(gene.sets)
     } else if (file.type == "gmt") {
-      gene.set.list <- read_gmt(gene.sets)
+      gene.set.list <- qusage::read.gmt(gene.sets)
     } else if (file.type == "tab") {
       gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
     } else {

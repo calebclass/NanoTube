@@ -63,6 +63,9 @@ groupFGSEA <- function(gsea.res, l.edge,
   gsea.sub$Cluster <- groups
   gsea.sub$Cluster.Max <- ifelse(duplicated(groups), yes = "", no = "x")
   
+  # Use "signif" if no returns option specified
+  returns <- returns[1]
+  
   if (returns == "signif") {
     gsea.return <- cbind(gsea.sub, t(l.edge))
     gsea.return <- gsea.return[order(gsea.return$Cluster, decreasing=FALSE),]

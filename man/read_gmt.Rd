@@ -16,3 +16,16 @@ each gene set.
 \description{
 Read in a .gmt gene set file. From the qusage library (Bolen C).
 }
+\examples{
+# Write a gmt file containing 2 gene sets.
+gene_sets <- matrix(c("Set1", "Description", "GeneA", "GeneB",
+                      "Set2", "Description", "GeneC", "GeneD"),
+                    nrow = 2, ncol = 4, byrow = TRUE)
+write.table(gene_sets, file = "foo.gmt", 
+            row.names = FALSE, col.names = FALSE, sep = "\t", quote = FALSE)
+            
+# Read the gmt file
+gene_set_list <- read_gmt("foo.gmt")
+
+gene_set_list
+}

@@ -24,6 +24,9 @@
 deVolcano <- function(limmaResults, 
                       plotContrast = NULL, y.var = c("p.value", "q.value")) {
   
+  # Bind local variables
+  log2FC <- log10p <- NULL
+  
   # Identify contrast if not provided
   if (is.null(plotContrast)) {
     plotContrast <- colnames(limmaResults$coefficients)[

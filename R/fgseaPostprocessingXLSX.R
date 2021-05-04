@@ -8,8 +8,8 @@
 #' @param genesetResults Results from pathway analysis using limmaToFGSEA.
 #' @param leadingEdge Results from fgseaToLEdge
 #' @param limmaResults Results from runLimmaAnalysis
-#' @param join.threshold The threshold distance to join gene sets. Gene sets with a distance
-#' below this value will be joined to a single "cluster."
+#' @param join.threshold The threshold distance to join gene sets. Gene sets 
+#' with a distance below this value will be joined to a single "cluster."
 #' @param ngroups The desired number of gene set groups. Either 
 #' 'join.threshold' or 'ngroups' must be specified, 'ngroups' takes priority 
 #' if both are specified.
@@ -17,15 +17,19 @@
 #' We recommend the 'binary' (also known as Jaccard) distance.
 #' @param filename File name for the output Excel file.
 #' 
+#' @return An Excel file where the first sheet summarizes the gene set analysis 
+#' results. Subsequent sheets are reports showing differential expression 
+#' statistics of leading edge genes.
+#' 
 #' @examples
-#' #' data("ExamplePathways")
+#' data("ExamplePathways")
 #' data("ExampleResults") # Results from runLimmaAnalysis
 #' 
 #' fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
 #' 
 #' leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
 #' 
-#' \dontrun{
+#' \donttest{
 #' fgseaPostprocessingXLSX(fgseaResults, leadingEdge, 
 #'                     limmaResults = ExampleResults,
 #'                     join.threshold = 0.5,

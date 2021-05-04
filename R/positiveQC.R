@@ -41,7 +41,10 @@
 
 positiveQC <- function(ns, samples = NULL, expected = NULL) {
   
-  #Log-transform the expected values if provided.
+  # Bind local variables
+  Expected <- Observed <- NULL
+  
+  # Log-transform the expected values if provided.
   if (!is.null(expected)) {
     expected <- log2(expected)
   }

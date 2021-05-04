@@ -32,8 +32,7 @@ example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
-                             logfile = "log.txt")
+                             sampleTab = sample_info, groupCol = "Sample_Diagnosis")
 
 # Compare the two diseases against healthy controls ("None")
 limmaResults <- runLimmaAnalysis(dat, base.group = "None")

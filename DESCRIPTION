@@ -2,16 +2,23 @@ Package: NanoTube
 Type: Package
 Title: An Easy Pipeline for NanoString nCounter Data Analysis
 Version: 0.1.0
-Date: 2020-08-11
-Author: Caleb A. Class
-Maintainer: Caleb A. Class <cclass@butler.edu>
+Date: 2021-04-30
+Authors@R: person("Caleb", "Class", email="cclass@butler.edu",
+                  role = c("cre", "aut"), 
+                  comment = c(ORCID = "0000-0003-3130-3613"))
 Depends: R (>= 3.5.0), Biobase, ggplot2
-Imports: fgsea, limma, reshape
-Suggests: grid, kableExtra, knitr, NanoStringDiff, pheatmap, plotly, rlang, rmarkdown, ruv, shiny, testthat, xlsx
+Imports: fgsea, limma, reshape, stats, utils
+Suggests: grid, kableExtra, knitr, NanoStringDiff, pheatmap, plotly, rlang, 
+    rmarkdown, ruv, qusage, shiny, testthat, xlsx
 VignetteBuilder: knitr
-Description: NanoTube includes functions for the processing, analysis, and plotting of NanoString nCounter data.
-License: GPL-2
+Description: NanoTube includes functions for the processing, quality control, 
+    analysis, and visualization of NanoString nCounter data. Analysis functions
+    include differential analysis and gene set analysis methods, as well as
+    postprocessing steps to help understand the results. Additional functions
+    are included to enable interoperability with other Bioconductor NanoString
+    data analysis packages.
+License: GPL-3
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.1.1
-biocViews: Software, GeneExpression, DifferentialExpression
+biocViews: Software, GeneExpression, DifferentialExpression, QualityControl

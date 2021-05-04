@@ -34,6 +34,9 @@
 nanostringPCA <- function(ns, pc1 = 1, pc2 = 2, 
                           interactive.plot = FALSE, exclude.zeros = TRUE) {
   
+  # Bind local variables
+  PC1 <- PC2 <- group <- NULL
+  
   if (class(ns) == "list") {
     pca.dat <- ns$exprs[ns$dict$CodeClass == "Endogenous",]
   } else {

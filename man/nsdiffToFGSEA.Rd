@@ -30,7 +30,7 @@ changes.
 }
 \examples{
 
-\dontrun{
+\donttest{
  
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
 sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")

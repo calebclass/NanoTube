@@ -6,6 +6,8 @@
 #' @name NanoTube
 #' @docType package
 #' @import Biobase ggplot2 fgsea limma reshape
+#' @importFrom stats cor cutree dist hclust median model.matrix p.adjust prcomp sd t.test
+#' @importFrom utils read.csv read.delim unzip write.table
 NULL
 
 #' Example pathway database

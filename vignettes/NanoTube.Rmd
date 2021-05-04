@@ -1,17 +1,14 @@
 ---
 title: "Analyzing NanoString nCounter Data with the NanoTube"
 author: "Caleb A Class"
-output: 
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 2
+output: rmarkdown::html_vignette
 bibliography: NanoTube.bib
+vignette: >
+  %\VignetteIndexEntry{NanoTube Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
-<!--
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{Supplementary Materials}
--->
+
 
 ```{r setup, echo = FALSE, results = "hide"}
 knitr::opts_chunk$set(tidy = FALSE,
@@ -26,38 +23,42 @@ knitr::opts_chunk$set(tidy = FALSE,
 This library provides tools for the processing, normalization, analysis, and
 visualization of NanoString nCounter gene expression data. 
 Standard NanoString-suggested analysis steps are supported, and functions
-are also provided for interoperability with other published NanoString analysis methods,
-as well as a pre-ranked gene set analysis method. This vignette provides a simple
-workflow for nCounter data analysis, as well as more detailed descriptions
-of NanoTube functions and options.
+are also provided for interoperability with other published NanoString analysis
+methods, as well as a pre-ranked gene set analysis method. This vignette 
+provides a simple workflow for nCounter data analysis, as well as more detailed
+descriptions of NanoTube functions and options.
 
 # A basic workflow
 `processNanostringData` allows you to read in nCounter expression data (from
 RCC files or in tabular form) and conduct basic normalization and quality
 control checks in one step. We use example data from GEO data series 
 GSE117751 [@lundy_t_2018]. For this example, RCC files are provided in 
-"GSE117751_RAW", while the sample characteristics table is "GSE117751_sample_data.csv".
+"GSE117751_RAW", while the sample characteristics table is 
+"GSE117751_sample_data.csv".
 
 ```{r Basic1}
 
 library(NanoTube)
 
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_info <- system.file("extdata", 
+                           "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 ```
 
 A variety of data processing and normalization options are provided in `processNanostringData`.
 A set of default options recommended by nCounter can be run automatically, or
-they can be specified and customized. More details are provided in the "Processing
-Data" section. This function also merges the expression data with the sample
-characteristics table (if provided), and outputs as an Biobase ExpressionSet.
+they can be specified and customized. More details are provided in the 
+"Processing Data" section. This function also merges the expression data with 
+the sample characteristics table (if provided), and outputs as an Biobase 
+ExpressionSet.
 
 ```{r Basic2, warning = FALSE}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
-                             logfile = "log.txt")
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis")
 
 ```
 
@@ -91,7 +92,8 @@ limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
 limmaStats <- as.data.frame(limmaStats)
 
 # Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
-head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, decreasing = FALSE), 1:4])
+head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
+                      decreasing = FALSE), 1:4])
 
 ```
 
@@ -103,11 +105,12 @@ deVolcano(limmaResults, plotContrast = "Autoimmune.retinopathy")
 
 ```
 
-DE results can also be used as input for pre-ranked gene set analysis in the `fgsea` package, 
-using `limmaToFGSEA` or `nsdiffToFGSEA`. Gene sets can be provided in .gmt, .tab,
-or .rds (list object) format, or a list can be input directly. Plenty of additional
-options for GSEA analysis are available, including leading edge analysis, gene
-set clustering, and reporting options (see 'Gene set analysis').
+DE results can also be used as input for pre-ranked gene set analysis in the 
+`fgsea` package, using `limmaToFGSEA` or `nsdiffToFGSEA`. Gene sets can be 
+provided in .gmt, .tab, or .rds (list object) format, or a list can be input 
+directly. Plenty of additional options for GSEA analysis are available, 
+including leading edge analysis, gene set clustering, and reporting options 
+(see 'Gene set analysis').
 
 ```{r Basic4}
 
@@ -123,7 +126,8 @@ names(fgseaResults)
 
 ```{r BasicTab}
 
-head(fgseaResults$Autoimmune.retinopathy[order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),])
+head(fgseaResults$Autoimmune.retinopathy[
+  order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),])
 
 ```
 
@@ -147,7 +151,8 @@ step can be skipped (retaining positive control normalization) using
 ```{r proc1}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              skip.housekeeping = FALSE,
@@ -156,24 +161,28 @@ dat <- processNanostringData(nsFiles = example_data,
 ```
 
 ## From Other files
-Expression data can also be imported from a table in a .txt or .csv file, possibly 
-produced by the RCC Collector tool.
+Expression data can also be imported from a table in a .txt or .csv file, 
+possibly produced by the RCC Collector tool.
 
 ```{r proc2}
 
-csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
+csv_data <- system.file("extdata", 
+                        "GSE117751_expression_matrix.csv", 
+                        package = "NanoTube")
 
 dat2 <- processNanostringData(nsFile = csv_data,
                              sampleTab = sample_info, 
-                             idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
+                             idCol = "GEO_Accession", 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "none")
 
 ```
 ## Normalization
 This package provides three options for data normalization: a standard set of 
 steps recommended by NanoString for nCounter data, which normalizes the data to 
-different sets of control genes [@nanostring_technologies_ncounter_2011]; the RUV (Remove Unwanted Variance) 
-method [@gagnon-bartsch_ruv_2019]; or no normalization.
+different sets of control genes [@nanostring_technologies_ncounter_2011]; the 
+RUV (Remove Unwanted Variance) method [@gagnon-bartsch_ruv_2019]; or no 
+normalization.
 
 To normalize using standard nSolver steps, set `normalization` to "nSolver". 
 The three normalization steps under this method are:
@@ -183,27 +192,29 @@ is used to calculate a scaling factor for each sample.
 2. Background assessment: Negative control probes are used to assess whether
 endogenous genes are truly expressed above the level of backgrounds. Two options
 are provided for this
-    + `bgType = "threshold"` - The background threshold will be defined independently 
-for each sample, using `threshold = bgThreshold * sd(NegativeControls) + mean(NegativeControls)`, 
-where `bgThreshold` is set by the user. For each gene, the proportion of samples
-with expression above the threshold is calculated, and only genes with a proportion
-greater than `bgProportion` (set by user) will be retained for analysis.
-For example, if `bgThreshold` is 2 and `bgProportion` is 0.5 (defaults), a gene
-will be retained for analysis if its expression is 2 standard deviations above
-the mean of negative control probes in at least half of the samples.
+    + `bgType = "threshold"` - The background threshold will be defined 
+    independently for each sample, using 
+    `threshold = bgThreshold * sd(NegativeControls) + mean(NegativeControls)`, 
+    where `bgThreshold` is set by the user. For each gene, the proportion of 
+    samples with expression above the threshold is calculated, and only genes 
+    with a proportion greater than `bgProportion` (set by user) will be 
+    retained for analysis. For example, if `bgThreshold` is 2 and `bgProportion`
+    is 0.5 (defaults), a gene will be retained for analysis if its expression is
+    2 standard deviations above the mean of negative control probes in at least
+    half of the samples.
     + `bgType = "t.test"` - Expression of each gene is compared with all of the 
-negative control probes (across samples) using a one-sided, two-sample t test. 
-Genes will be retained for analysis if the endogenous gene expression is greater,
-with p < `bgPVal`.
+    negative control probes (across samples) using a one-sided, two-sample 
+    t test. Genes will be retained for analysis if the endogenous gene 
+    expression is greater, with p < `bgPVal`.
     + `bgSubtract` - By setting this to TRUE, the calculated background level 
-(`mean + bgThreshold * sd`) will be subtracted from the expression values for 
-each gene in each sample. After subtraction, genes with negative values will be
-set to zero.
-3. Housekeeping normalization: The geometric mean of housekeeping gene expression is used to calculate
-a scaling factor for each sample. Housekeeping genes (symbols or accessions) can
-be input using the `housekeeping` option. If not provided, genes marked as 
-"Housekeeping" in the RCC files will be used. Alternatively, this can be skipped 
-using `skip.housekeeping = TRUE`.
+    (`mean + bgThreshold * sd`) will be subtracted from the expression values 
+    for each gene in each sample. After subtraction, genes with negative values
+    will be set to zero.
+3. Housekeeping normalization: The geometric mean of housekeeping gene 
+expression is used to calculate a scaling factor for each sample. Housekeeping
+genes (symbols or accessions) can be input using the `housekeeping` option. 
+If not provided, genes marked as "Housekeeping" in the RCC files will be used. 
+Alternatively, this can be skipped using `skip.housekeeping = TRUE`.
 
 
 ```{r norm1}
@@ -212,7 +223,8 @@ using `skip.housekeeping = TRUE`.
 hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              housekeeping = hk.genes, skip.housekeeping = FALSE)
@@ -231,7 +243,8 @@ dat <- processNanostringData(example_data, output.format = "list",
 
 ```
 
-Basic QC and cartridge data are loaded in from the RCC files if `includeQC` is set to TRUE.
+Basic QC and cartridge data are loaded in from the RCC files if `includeQC` is 
+set to TRUE.
 
 ```{r qc2}
 
@@ -306,10 +319,13 @@ plot using `ggplot2` or an interactive plot using `plotly` (use the
 ```{r pca, warning = FALSE}
 
 dat <- processNanostringData(example_data, 
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
-                             normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01)
 
-library(plotly) # Needed to use %>% operator within function, or to add more facets
+library(plotly) 
 nanostringPCA(dat, interactive.plot = TRUE)$plt
 
 ```
@@ -365,7 +381,9 @@ were collected in two batches, you could include a batch term in the analysis.
 batch <- rep(c(0, 1), times = ncol(dat) / 2)
 
 # Reorder groups ("None" first)
-group <- factor(dat$groups, levels = c("None", "Autoimmune retinopathy", "Retinitis pigmentosa"))
+group <- factor(dat$groups, 
+                levels = c("None", "Autoimmune retinopathy", 
+                           "Retinitis pigmentosa"))
 
 # Design matrix including sample group and batch
 design <- model.matrix(~group + batch)
@@ -391,7 +409,8 @@ You can add additional ggplot layers as well.
 
 ```{r volcano2}
 
-deVolcano(limmaResults, plotContrast = "Autoimmune.retinopathy", y.var = "p.value") +
+deVolcano(limmaResults, plotContrast = "Autoimmune.retinopathy", 
+          y.var = "p.value") +
   geom_hline(yintercept = 2, linetype = "dashed", colour = "darkred") +
   geom_vline(xintercept = 0.5, linetype = "dashed", colour = "darkred") +
   geom_vline(xintercept = -0.5, linetype = "dashed", colour = "darkred")
@@ -424,7 +443,8 @@ unnormalized, data to a `NanoStringSet` for use with NanoStringDiff.
 
 # Remember to set normalization = "none"
 datNoNorm <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "none")
 
 nsDiffSet <- makeNanoStringSetFromEset(datNoNorm)
@@ -436,8 +456,8 @@ colnames(pData(nsDiffSet))
 Then you can run as described in the NanoStringDiff vignette (see vignette for
 full details). Notably, the glm.LRT step is very slow for sample sizes above 10
 (and may still be slow with fewer samples). Interested users could also consider
-using DESeq2 if a negative binomial method is desired, although that method would
-not explicitly handle the various control genes [@love_moderated_2014].
+using DESeq2 if a negative binomial method is desired, although that method 
+would not explicitly handle the various control genes [@love_moderated_2014].
 
 ```{r nsDiffRun, eval = FALSE}
 
@@ -449,7 +469,8 @@ nsDiffSet <- NanoStringDiff::estNormalizationFactors(nsDiffSet)
 # This step likely to take multiple hours on standard desktop computers.
 result <- NanoStringDiff::glm.LRT(nsDiffSet, 
                                   design.full = as.matrix(pData(nsDiffSet)),
-                                  contrast = c(1, -1, 0)) #Autoimmune retinopathy vs. None
+                                  contrast = c(1, -1, 0)) 
+                                  #Contrast: Autoimmune retinopathy vs. None
 
 ```
 
@@ -465,14 +486,14 @@ Gene set databases can be loaded as a list object (either directly or in an .rds
 file), or as a .gmt (MSigDB or similar) or .tab (CPDB) file. We have included a 
 list of pathways from WikiPathways [@martens_wikipathways_2021].  
 
-The `min.set` option is important, as pathways containing only a few genes present
-in your data set will probably not provide informative enrichment statistics. We
-will discard all gene sets where fewer than `min.set` genes from that set are
-present in the analysis. You
-also have the option to rank genes by 'coefficients' (frequently, the log2FC) or 
-the 't' statistics. `skip.first` will skip the first column of the limma design
-if TRUE (default).  Generally, this column is the Intercept of the regression,
-which is not useful for gene set analysis.
+The `min.set` option is important, as pathways containing only a few genes 
+present in your data set will probably not provide informative enrichment 
+statistics. We will discard all gene sets where fewer than `min.set` genes from
+that set are present in the analysis. You also have the option to rank genes by
+'coefficients' (frequently, the log2FC) or the 't' statistics. `skip.first` 
+will skip the first column of the limma design if TRUE (default).  Generally, 
+this column is the Intercept of the regression, which is not useful for gene 
+set analysis.
 
 The `limmaToFGSEA` function will then conduct preranked analysis using `fgsea`
 for each column in the Limma coefficients or t-statistic matrix (possibly 
@@ -493,12 +514,13 @@ names(fgseaResults)
 
 We can order the pathways by p-value and view the top results. As previously
 reported in [@lundy_t_2018], we see that immune pathways are significantly
-altered in autoimmune retinopathy patients. We also identify EGFR Signaling as a 
+altered in autoimmune retinopathy patients. We also identify EGFR Signaling as a
 potential pathway of interest.
 
 ```{r gsea2}
 
-fgsea.ordered <- fgseaResults$Autoimmune.retinopathy[order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),]
+fgsea.ordered <- fgseaResults$Autoimmune.retinopathy[
+    order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),]
 
 fgsea.ordered[1:5,]
 
@@ -519,9 +541,9 @@ leading.edge <- fgseaToLEdge(fgsea.res = fgseaResults,
 ```
 
 The nominal p-value or NES (normalized enrichment score) can also be used as 
-a cutoff. If NES is used, you can either select all gene sets with abs(NES) > cutoff,
-if `nes.abs.cutoff == TRUE`. Otherwise, you can select gene sets with NES > cutoff 
-(if cutoff > 0) or NES < cutoff (if cutoff < 0).
+a cutoff. If NES is used, you can either select all gene sets with 
+abs(NES) > cutoff, if `nes.abs.cutoff == TRUE`. Otherwise, you can select gene 
+sets with NES > cutoff (if cutoff > 0) or NES < cutoff (if cutoff < 0).
 
 ```{r gsea4}
 
@@ -553,9 +575,9 @@ pheatmap::pheatmap(t(leading.edge$Autoimmune.retinopathy),
 
 ```
 
-You can further cluster pathways by their leading edge genes. This is particularly
-useful when you have lots (tens to hundreds) of significantly enriched pathways,
-as you can prioritize certain ones.
+You can further cluster pathways by their leading edge genes. This is 
+particularly useful when you have lots (tens to hundreds) of significantly 
+enriched pathways, as you can prioritize certain ones.
 
 ```{r gsea6}
 
@@ -604,9 +626,10 @@ for one comparison.
 
 ```{r exportGSEA2}
 
-results.AR <- groupedGSEAtoStackedReport(fgsea.grouped,
-                                            leadingEdge = leading.edge$Autoimmune.retinopathy,
-                                            de.fit = limmaResults)
+results.AR <- groupedGSEAtoStackedReport(
+    fgsea.grouped,
+    leadingEdge = leading.edge$Autoimmune.retinopathy,
+    de.fit = limmaResults)
 
 # View Cluster 1 gene statistics
 results.AR[results.AR$Cluster == 1, 1:6]

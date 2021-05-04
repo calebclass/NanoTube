@@ -44,6 +44,9 @@ negativeQC <- function(ns, interactive.plot = FALSE) {
          to using this function")
   }
   
+  # Bind local variables
+  Count <- Sample <- Gene <- NULL
+  
   # Strip plot for negative control genes
   dat.neg <- as.data.frame(ns$exprs.raw[ns$dict.raw$CodeClass == "Negative",])
   dat.neg$Gene <- ns$dict.raw$Name[ns$dict.raw$CodeClass == "Negative"]
@@ -69,8 +72,8 @@ negativeQC <- function(ns, interactive.plot = FALSE) {
     theme_classic() + ylab("") 
   
   if (interactive.plot) {
-    neg.plot <- ggplotly(neg.plot, tooltip = c("text"), width = 550, height = 400) %>% 
-      layout(margin = list(l=90), autosize = FALSE)
+    neg.plot <- plotly::ggplotly(neg.plot, tooltip = c("text"), width = 550, height = 400) # %>%   # need to check this
+#      layout(margin = list(l=90), autosize = FALSE)
   }
   
   return(list(tab = neg.tab,

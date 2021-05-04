@@ -16,31 +16,40 @@ remove_background(
 \arguments{
 \item{dat}{Positive control-scaled NanoString data}
 
-\item{mode}{Either "threshold" (default) or "t.test". If "threshold", requires proportionReq
-of samples to have expression numSD standard deviations among the mean of negative control
-genes. If "t.test", each gene will be compared with all negative control genes
-in a one-sided two-sample t-test.}
+\item{mode}{Either "threshold" (default) or "t.test". If "threshold", 
+requires proportionReq of samples to have expression numSD standard 
+deviations among the mean of negative control genes. If "t.test", each gene 
+will be compared with all negative control genes in a one-sided two-sample 
+t-test.}
 
-\item{numSD}{Number of standard deviations above mean of negative control genes to used as
-background threshold for each sample: mean(negative_controls) + numSD * sd(negative_controls).
+\item{numSD}{Number of standard deviations above mean of negative control 
+genes to used as background threshold for each sample: 
+mean(negative_controls) + numSD * sd(negative_controls). 
 Required if mode == "threshold" or subtract == TRUE}
 
-\item{proportionReq}{Required proportion of sample expressions exceeding the sample background
-threshold to include gene in further analysis. Required if mode == "threshold" or 
-subtract == TRUE}
+\item{proportionReq}{Required proportion of sample expressions exceeding the
+sample background threshold to include gene in further analysis. Required if
+mode == "threshold" or subtract == TRUE}
 
-\item{pval}{p-value (from one-sided t-test) threshold to declare gene expression above
-background expression level. Genes with p-values above this level are removed from
-further analysis. Required if mode == "t.test"}
+\item{pval}{p-value (from one-sided t-test) threshold to declare gene 
+expression above background expression level. Genes with p-values above 
+this level are removed from further analysis. Required if mode == "t.test"}
 
-\item{subtract}{Should calculated background levels be subtracted from reported expressions?
-If TRUE, will subtract mean+numSD*sd of the negative controls from the endogenous genes,
-and then set negative values to zero (default FALSE)}
+\item{subtract}{Should calculated background levels be subtracted from 
+reported expressions? If TRUE, will subtract mean+numSD*sd of the negative 
+controls from the endogenous genes, and then set negative values to zero 
+(default FALSE).}
+}
+\value{
+NanoString data, with genes removed that fail the comparison test
+against negative control genes. Expression levels are updated for all genes
+if subtract == TRUE.
 }
 \description{
-Compare endogenous gene expression data against negative control genes. and
+Compare endogenous gene expression data against negative control genes and
 remove data for genes that fail the comparison. This step is
-conducted within processNanostringData, when normalization is set to "nCounter".
+conducted within processNanostringData, when normalization is set to 
+"nCounter".
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
