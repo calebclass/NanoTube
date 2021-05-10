@@ -22,7 +22,8 @@ with the NanoStringDiff package.
 \examples{
 # Example data
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+package = "NanoTube")
 
 # Load data without normalization
 dat <- processNanostringData(nsFiles = example_data,

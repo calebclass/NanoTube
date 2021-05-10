@@ -26,12 +26,15 @@ negative control genes in each sample.
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 # Process and normalize data first
 dat <- processNanostringData(example_data, 
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-                             normalization = "nSolver", bgType = "threshold", 
+                             sampleTab = sample_data, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "threshold", 
                              bgThreshold = 2, bgProportion = 0.5,
                              output.format = "list")
 

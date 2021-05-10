@@ -1,7 +1,7 @@
 #' Read .rcc file
 #'
-#' This function reads in a single .rcc file and splits into expression, sample data,
-#' and qc components.
+#' This function reads in a single .rcc file and splits into expression, 
+#' sample data, and qc components.
 #' 
 #' @export
 #'
@@ -19,16 +19,23 @@
 
 read_rcc <- function(file) {
 
-  dat.csv <- read.csv(file,
-                      row.names = NULL, col.names = 1:4, header = FALSE, stringsAsFactors = FALSE)
-  dat <- list(exprs = dat.csv[(which(dat.csv[,1] == "<Code_Summary>")+1):(which(dat.csv[,1] == "</Code_Summary>")-1),],
-              sample = dat.csv[(which(dat.csv[,1] == "<Sample_Attributes>")+1):(which(dat.csv[,1] == "</Sample_Attributes>")-1), 1:2],
-              qc = dat.csv[(which(dat.csv[,1] == "<Lane_Attributes>")+1):(which(dat.csv[,1] == "</Lane_Attributes>")-1), 1:2])
-  for (i in 1:3) {
-    colnames(dat[[i]]) <- dat[[i]][1,]
-    dat[[i]] <- dat[[i]][-1,]
-    rownames(dat[[i]]) <- NULL
-  }
-  dat[[1]]$Count <- as.numeric(dat[[1]]$Count)
-  return(dat)
+    dat.csv <- read.csv(file,
+                        row.names = NULL, col.names = seq_len(4), 
+                        header = FALSE, stringsAsFactors = FALSE)
+    dat <- list(exprs = dat.csv[(which(dat.csv[,1] == "<Code_Summary>")+1):
+                                  (which(dat.csv[,1] == "</Code_Summary>")-1),],
+                sample = dat.csv[
+                    (which(dat.csv[,1] == "<Sample_Attributes>")+1):
+                        (which(dat.csv[,1] == "</Sample_Attributes>")-1), 
+                    c(1,2)],
+                qc = dat.csv[(which(dat.csv[,1] == "<Lane_Attributes>")+1):
+                               (which(dat.csv[,1] == "</Lane_Attributes>")-1), 
+                             c(1,2)])
+    for (i in seq_len(3)) {
+        colnames(dat[[i]]) <- dat[[i]][1,]
+        dat[[i]] <- dat[[i]][-1,]
+        rownames(dat[[i]]) <- NULL
+    }
+    dat[[1]]$Count <- as.numeric(dat[[1]]$Count)
+    return(dat)
 }

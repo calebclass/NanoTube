@@ -14,8 +14,8 @@ list containing expression data, sample attributes, and basic qc from
 the .rcc file.
 }
 \description{
-This function reads in a single .rcc file and splits into expression, sample data,
-and qc components.
+This function reads in a single .rcc file and splits into expression, 
+sample data, and qc components.
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")

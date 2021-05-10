@@ -18,7 +18,8 @@ fgseaToLEdge(
 p-value ('pval'), normalized enrichment score ('NES'), or include all gene
 sets ('none')}
 
-\item{cutoff}{Numeric cutoff for filtering (not used if cutoff.type == "none")}
+\item{cutoff}{Numeric cutoff for filtering (not used if 
+cutoff.type == "none")}
 
 \item{nes.abs.cutoff}{If cutoff.type == "NES", should we use extreme positive
 and negative values (TRUE), or only filter in the positive or negative 
@@ -40,7 +41,8 @@ data("ExampleResults") # Results from runLimmaAnalysis
 fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
 
 # Generate the leading edge for pathways with padj < 0.25
-leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.25)
+leadingEdge <- fgseaToLEdge(fgseaResults, 
+                            cutoff.type = "padj", cutoff = 0.25)
 
 # Generate the leading edge for pathways with abs(NES) > 2
 leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "NES",

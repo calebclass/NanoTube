@@ -14,38 +14,42 @@ groupFGSEA(
 )
 }
 \arguments{
-\item{gsea.res}{Results from pathway analysis for a single comparison, using limmaToFSEA.}
+\item{gsea.res}{Results from pathway analysis for a single comparison, 
+using limmaToFSEA.}
 
 \item{l.edge}{Leading edge result from fgseaToLEdge.}
 
-\item{join.threshold}{The threshold distance to join gene sets. Gene sets with a distance
-below this value will be joined to a single "cluster."}
+\item{join.threshold}{The threshold distance to join gene sets. Gene sets 
+with a distance below this value will be joined to a single "cluster."}
 
-\item{ngroups}{The desired number of gene set groups. Either 
-'join.threshold' or 'ngroups' must be specified, 'ngroups' takes priority 
+\item{ngroups}{The desired number of gene set groups. Either
+'join.threshold' or 'ngroups' must be specified, 'ngroups' takes priority
 if both are specified.}
 
 \item{dist.method}{Method for distance calculation (see options for dist()).
 We recommend the 'binary' (also known as Jaccard) distance.}
 
-\item{returns}{Either "signif" or "all". This argument defines whether only significantly
-enriched gene sets are included in the output table, or if the full results are included.
-Regardless of this selection, only significantly enriched gene sets are clustered.}
+\item{returns}{Either "signif" or "all". This argument defines whether only 
+significantly enriched gene sets are included in the output table, or if 
+the full results are included. Regardless of this selection, only 
+significantly enriched gene sets are clustered.}
 }
 \value{
-A data frame including the FGSEA results, plus two additional columns for the clustering
-results:
+A data frame including the FGSEA results, plus two additional 
+columns for the clustering results:
 
-\item{Cluster}{The cluster that the gene set was assigned to. Gene sets in the same
-cluster have a distance below the join.threshold.}
+\item{Cluster}{The cluster that the gene set was assigned to. Gene 
+sets in the same cluster have a distance below the join.threshold.}
 
-\item{best}{Whether the gene set is the most enriched (by p-value) in a given cluster.}
+\item{best}{Whether the gene set is the most enriched (by p-value) 
+in a given cluster.}
 }
 \description{
-Groups the pathway analysis results (using limmaToFGSEA or nsdiffToFGSEA) based on
-the enriched gene sets' leading edges. If the calculated distance metric is lower than
-the given threshold (i.e. the gene sets have highly overlapping leading edge genes),
-these gene sets will be joined to a single gene set "cluster."
+Groups the pathway analysis results (using limmaToFGSEA or nsdiffToFGSEA) 
+based on the enriched gene sets' leading edges. If the calculated distance 
+metric is lower than the given threshold (i.e. the gene sets have highly 
+overlapping leading edge genes), these gene sets will be joined to a single 
+gene set "cluster."
 }
 \examples{
 data("ExamplePathways")
@@ -54,9 +58,11 @@ data("ExampleResults") # Results from runLimmaAnalysis
 fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways,
                              min.set = 5, rank.by = "t")
 
-leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.25)
+leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", 
+                            cutoff = 0.25)
 
-# Group the results, and only returns those satisfying the cutoff specified in leadingEdge()
+# Group the results, and only returns those satisfying the cutoff specified 
+# in leadingEdge()
 groupedResults <- groupFGSEA(fgseaResults$Autoimmune.retinopathy, 
                              leadingEdge$Autoimmune.retinopathy,
                              join.threshold = 0.5,

@@ -45,7 +45,7 @@
 #' 
 #' # Remove endogenous genes where fewer than 25% of samples have an expression
 #' # 2 standard deviations above the average negative control gene. Also, 
-#' # subtract this background level (mean + 2*sd) from endogenous control genes. 
+#' # subtract this background level (mean + 2*sd) from endogenous genes.
 #' dat <- remove_background(dat, mode = "threshold", 
 #'                          numSD = 2, proportionReq = 0.25, subtract = TRUE)
 
@@ -54,76 +54,79 @@ remove_background <- function(dat,
                               numSD, proportionReq, pval,
                               subtract = FALSE) {
   
-  # Check for negative control genes in the data set
-  if (sum(dat$dict$CodeClass == "Negative") == 0) {
-    stop("Cannot conduct filtering with negative controls: No negative control 
-         genes found in input")
-  }
-  
-  negative.mean <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, mean)
-  negative.sd <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, sd)
-  
-  if (mode == "threshold" | subtract) {
-    bg.threshold <- negative.mean + numSD * negative.sd
-    
-    dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
-                               Max.Neg = 
-                                 apply(
-                                   dat$exprs[dat$dict$CodeClass == "Negative",], 
-                                   2, max),
-                               sd.Neg = negative.sd,
-                               background = bg.threshold,
-                               num.less.bg = 
-                                 colSums(t(t(dat$exprs[dat$dict$CodeClass == 
-                                                         "Endogenous" ,]) < 
-                                             bg.threshold)),
-                               frc.less.bg = 
-                                 colMeans(t(t(dat$exprs[dat$dict$CodeClass == 
-                                                          "Endogenous" ,]) < 
-                                              bg.threshold)))
-  } else {
-    dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
-                               Max.Neg = apply(dat$exprs[
-                                 dat$dict$CodeClass == "Negative",], 2, max),
-                               sd.Neg = negative.sd)
-  }
-  
-  if (mode == "t.test") {
-    dat$gene.stats <- data.frame(row.names = dat$dict$Name,
-                                 t.stat = rep(NA, times=length(dat$dict$Name)),
-                                 p.val = rep(NA, times=length(dat$dict$Name)),
-                                 pass = rep(NA, times=length(dat$dict$Name)))
-    
-    rowsKeep <- ifelse(dat$dict$CodeClass == "Endogenous", 
-                       yes = FALSE, no = TRUE)
-    background <- unlist(dat$exprs[dat$dict$CodeClass == "Negative",])
-#    pvalvec <- c()
-    
-    for (i in which(dat$dict$CodeClass == "Endogenous")){
-      ttest <- t.test(x = dat$exprs[i,], y = background, 
-                      var.equal = FALSE, alternative = "greater")
-      if (ttest$p.value < pval) {
-        rowsKeep[i] <- TRUE
-      }
-#      pvalvec <- c(pvalvec, ttest$p.value)
-      dat$gene.stats$t.stat[i] <- as.numeric(ttest$statistic)
-      dat$gene.stats$p.val[i] <- ttest$p.value
+    # Check for negative control genes in the data set
+    if (sum(dat$dict$CodeClass == "Negative") == 0) {
+        stop("Cannot conduct filtering with negative controls: No negative 
+            control genes found in input")
     }
     
-    dat$gene.stats$pass <- rowsKeep
-  } else {
-    rowsKeep <- which(dat$dict$CodeClass != "Endogenous" | 
-                        rowMeans(t(t(dat$exprs) > bg.threshold)) >= 
-                        proportionReq)
-  }
-  
-  if (subtract) {
-    for (i in 1:ncol(dat$exprs)) dat$exprs[,i] <- 
-        dat$exprs[,i] - bg.threshold[i]
-    dat$exprs[dat$exprs < 0] <- 0
-  }
-  
-  dat$exprs <- dat$exprs[rowsKeep,]
-  dat$dict <- dat$dict[rowsKeep,]
-  return(dat)
+    negative.mean <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 
+                           2, mean)
+    negative.sd <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, sd)
+    
+    if (mode == "threshold" | subtract) {
+        bg.threshold <- negative.mean + numSD * negative.sd
+        
+        dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
+                                   Max.Neg =
+                                     apply(dat$exprs[
+                                       dat$dict$CodeClass == "Negative", ],
+                                           2, max), 
+                                   sd.Neg = negative.sd,
+                                   background = bg.threshold,
+                                   num.less.bg = 
+                                     colSums(t(t(dat$exprs[
+                                       dat$dict$CodeClass == "Endogenous" , ]) <
+                                                 bg.threshold)), 
+                                   frc.less.bg = 
+                                     colMeans(t(t(dat$exprs[
+                                       dat$dict$CodeClass == "Endogenous" , ]) <
+                                                  bg.threshold)))
+    } else {
+        dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
+                                   Max.Neg = apply(dat$exprs[
+                                     dat$dict$CodeClass == "Negative",], 
+                                     2, max),
+                                   sd.Neg = negative.sd)
+    }
+    
+    if (mode == "t.test") {
+        dat$gene.stats <- data.frame(row.names = dat$dict$Name,
+                                     t.stat = rep(NA, 
+                                                  times=length(dat$dict$Name)),
+                                     p.val = rep(NA, 
+                                                 times=length(dat$dict$Name)),
+                                     pass = rep(NA, 
+                                                times=length(dat$dict$Name)))
+        
+        rowsKeep <- ifelse(dat$dict$CodeClass == "Endogenous", 
+                           yes = FALSE, no = TRUE)
+        background <- unlist(dat$exprs[dat$dict$CodeClass == "Negative",])
+        
+        for (i in which(dat$dict$CodeClass == "Endogenous")){
+            ttest <- t.test(x = dat$exprs[i,], y = background, 
+                            var.equal = FALSE, alternative = "greater")
+            if (ttest$p.value < pval) {
+                rowsKeep[i] <- TRUE
+            }
+            dat$gene.stats$t.stat[i] <- as.numeric(ttest$statistic)
+            dat$gene.stats$p.val[i] <- ttest$p.value
+        }
+        
+        dat$gene.stats$pass <- rowsKeep
+    } else {
+        rowsKeep <- which(dat$dict$CodeClass != "Endogenous" | 
+                            rowMeans(t(t(dat$exprs) > bg.threshold)) >= 
+                            proportionReq)
+    }
+    
+    if (subtract) {
+        for (i in seq_len(ncol(dat$exprs))) dat$exprs[,i] <- 
+            dat$exprs[,i] - bg.threshold[i]
+        dat$exprs[dat$exprs < 0] <- 0
+    }
+    
+    dat$exprs <- dat$exprs[rowsKeep,]
+    dat$dict <- dat$dict[rowsKeep,]
+    return(dat)
 }

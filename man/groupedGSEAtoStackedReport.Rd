@@ -25,3 +25,20 @@ After clustering FGSEA results by gene set similarity, this function builds
 a report containing the individual gene expression profiles for genes 
 contained in each gene set cluster.
 }
+\examples{
+data("ExamplePathways")
+data("ExampleResults") # Results from runLimmaAnalysis
+
+fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
+
+fgsea.grouped <- groupFGSEA(fgseaResults$Autoimmune.retinopathy, 
+                            leadingEdge$Autoimmune.retinopathy,
+                            join.threshold = 0.5,
+                            dist.method = "binary")
+
+results.AR <- groupedGSEAtoStackedReport(
+              fgsea.grouped,
+              leadingEdge = leadingEdge$Autoimmune.retinopathy,
+              de.fit = ExampleResults)
+}

@@ -33,10 +33,12 @@ changes.
 \donttest{
  
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 datNoNorm <- processNanostringData(nsFiles = example_data,
-                                   sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                                   sampleTab = sample_data, 
+                                   groupCol = "Sample_Diagnosis",
                                    normalization = "none")
 
 # Convert to NanoString Set, retaining 2 samples per group for this example
@@ -47,7 +49,8 @@ nsDiffSet <- makeNanoStringSetFromEset(datNoNorm[,c(1,2,15,16,29,30)])
 nsDiffSet <- NanoStringDiff::estNormalizationFactors(nsDiffSet)
 result <- NanoStringDiff::glm.LRT(nsDiffSet, 
                                   design.full = as.matrix(pData(nsDiffSet)),
-                                  contrast = c(1, -1, 0)) #Autoimmune retinopathy vs. None
+                                  contrast = c(1, -1, 0)) 
+                                  #contrast: Autoimmune retinopathy vs. None
 
 # FGSEA with example pathways, only for pathways with at least 5 genes
 # analyzed in NanoString experiment

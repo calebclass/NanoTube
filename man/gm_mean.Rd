@@ -9,8 +9,9 @@ gm_mean(x, na.rm = TRUE)
 \arguments{
 \item{x}{A numeric vector}
 
-\item{na.rm}{Logical (default TRUE). Should NA values be ignored in this calculation? If FALSE,
-a vector containing NA values will return a geometric mean of NA.}
+\item{na.rm}{Logical (default TRUE). Should NA values be ignored in this 
+calculation? If FALSE, a vector containing NA values will return a 
+geometric mean of NA.}
 }
 \value{
 The geometric mean

@@ -39,40 +39,42 @@ limmaToFGSEA <- function(limmaResults, gene.sets, sourceDB = NULL,
                          min.set = 1, rank.by = c('coefficients', 't'),
                          skip.first = TRUE) {
 
-  if (class(gene.sets) == "list") {
-    gene.set.list <- gene.sets
-  } else {
-    file.type <- substr(gene.sets, start = nchar(gene.sets)-2, stop = nchar(gene.sets))
-    if (file.type == "rds") {
-      gene.set.list <- readRDS(gene.sets)
-    } else if (file.type == "gmt") {
-      gene.set.list <- qusage::read.gmt(gene.sets)
-    } else if (file.type == "tab") {
-      gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
+    if (class(gene.sets) == "list") {
+        gene.set.list <- gene.sets
     } else {
-      stop("gene.sets must be in .rds (list object), .gmt, or .tab format")
+        file.type <- substr(gene.sets, start = nchar(gene.sets)-2, 
+                            stop = nchar(gene.sets))
+        if (file.type == "rds") {
+            gene.set.list <- readRDS(gene.sets)
+        } else if (file.type == "gmt") {
+            gene.set.list <- qusage::read.gmt(gene.sets)
+        } else if (file.type == "tab") {
+            gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
+        } else {
+            stop("gene.sets must be in .rds (list object), .gmt, 
+                 or .tab format")
+        }
     }
-  }
-  
-  rank.by <- rank.by[1]
-  if (!(rank.by) %in% c('coefficients', 't')) {
-    stop("rank.by must be either 'coefficeints' or 't'.")
-  }
-  
-  if (skip.first) {
-    analysis.factors <- colnames(limmaResults[[rank.by]])[-1]
-  } else {
-    analysis.factors <- colnames(limmaResults[[rank.by]])
-  }
-  
-  fgsea.res <- list()
-  for (i in analysis.factors) {
-    fgsea.res[[i]] <- fgsea::fgseaMultilevel(pathways = gene.set.list,
-                                             stats = limmaResults[[rank.by]][,i],
-                                             minSize = min.set)
-  }
-  
-  return(fgsea.res)
+    
+    rank.by <- rank.by[1]
+    if (!(rank.by) %in% c('coefficients', 't')) {
+        stop("rank.by must be either 'coefficeints' or 't'.")
+    }
+    
+    if (skip.first) {
+        analysis.factors <- colnames(limmaResults[[rank.by]])[-1]
+    } else {
+        analysis.factors <- colnames(limmaResults[[rank.by]])
+    }
+    
+    fgsea.res <- list()
+    for (i in analysis.factors) {
+        fgsea.res[[i]] <- fgsea::fgseaMultilevel(pathways = gene.set.list,
+                                          stats = limmaResults[[rank.by]][,i],
+                                          minSize = min.set)
+    }
+    
+    return(fgsea.res)
   
 }
   

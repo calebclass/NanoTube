@@ -41,27 +41,27 @@ fgseaPostprocessing <- function(genesetResults, leadingEdge, limmaResults,
                                join.threshold = 0.5, ngroups = NULL,
                                dist.method = "binary", reportDir) {
 
-  dir.create(reportDir, showWarnings = FALSE)
-
-  makeFGSEAmasterTable(genesetResults, leadingEdge,
-                       join.threshold, 
-                       filename = paste0(reportDir, "/gsea_summary.txt"))
-
-  for (i in names(genesetResults)) {
-      if(!is.null(leadingEdge[[i]])){
-        grouped <-   groupFGSEA(genesetResults[[i]],
-                                     leadingEdge[[i]],
-                                     join.threshold,
-                                     ngroups, dist.method,
-                                     returns = "signif")
-        tab <- groupedGSEAtoStackedReport(grouped, 
-                                          leadingEdge[[i]],
-                                          limmaResults)
-        
-        write.table(tab, file = paste0(reportDir, "/", i, ".txt"),
-                    sep = "\t", quote = FALSE, 
-                    row.names = FALSE, col.names = TRUE)
-}
-  }
-
+    dir.create(reportDir, showWarnings = FALSE)
+  
+    makeFGSEAmasterTable(genesetResults, leadingEdge,
+                         join.threshold, 
+                         filename = paste0(reportDir, "/gsea_summary.txt"))
+  
+    for (i in names(genesetResults)) {
+        if(!is.null(leadingEdge[[i]])){
+            grouped <-   groupFGSEA(genesetResults[[i]],
+                                       leadingEdge[[i]],
+                                       join.threshold,
+                                       ngroups, dist.method,
+                                       returns = "signif")
+            tab <- groupedGSEAtoStackedReport(grouped, 
+                                              leadingEdge[[i]],
+                                              limmaResults)
+          
+            write.table(tab, file = paste0(reportDir, "/", i, ".txt"),
+                        sep = "\t", quote = FALSE, 
+                        row.names = FALSE, col.names = TRUE)
+        }
+    }
+  
 }

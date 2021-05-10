@@ -32,7 +32,8 @@ first column and must correspond with sample names in the count data file(s).
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_info <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_info <- system.file("extdata", "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 dat <- read_merge_rcc(list.files(example_data, full.names = TRUE))
 

@@ -22,10 +22,12 @@
 #' \donttest{
 #'  
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+#'                            package = "NanoTube")
 #' 
 #' datNoNorm <- processNanostringData(nsFiles = example_data,
-#'                                    sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+#'                                    sampleTab = sample_data, 
+#'                                    groupCol = "Sample_Diagnosis",
 #'                                    normalization = "none")
 #'
 #' # Convert to NanoString Set, retaining 2 samples per group for this example
@@ -36,7 +38,8 @@
 #' nsDiffSet <- NanoStringDiff::estNormalizationFactors(nsDiffSet)
 #' result <- NanoStringDiff::glm.LRT(nsDiffSet, 
 #'                                   design.full = as.matrix(pData(nsDiffSet)),
-#'                                   contrast = c(1, -1, 0)) #Autoimmune retinopathy vs. None
+#'                                   contrast = c(1, -1, 0)) 
+#'                                   #contrast: Autoimmune retinopathy vs. None
 #' 
 #' # FGSEA with example pathways, only for pathways with at least 5 genes
 #' # analyzed in NanoString experiment
@@ -50,28 +53,30 @@
 nsdiffToFGSEA <- function(deResults, gene.sets, sourceDB = NULL,
                          min.set = 1) {
   
-  if (class(gene.sets) == "list") {
-    gene.set.list <- gene.sets
-  } else {
-    file.type <- substr(gene.sets, start = nchar(gene.sets)-2, stop = nchar(gene.sets))
-    if (file.type == "rds") {
-      gene.set.list <- readRDS(gene.sets)
-    } else if (file.type == "gmt") {
-      gene.set.list <- qusage::read.gmt(gene.sets)
-    } else if (file.type == "tab") {
-      gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
+    if (class(gene.sets) == "list") {
+        gene.set.list <- gene.sets
     } else {
-      stop("gene.sets must be in .rds (list object), .gmt, or .tab format")
+        file.type <- substr(gene.sets, start = nchar(gene.sets)-2, 
+                            stop = nchar(gene.sets))
+        if (file.type == "rds") {
+            gene.set.list <- readRDS(gene.sets)
+        } else if (file.type == "gmt") {
+            gene.set.list <- qusage::read.gmt(gene.sets)
+        } else if (file.type == "tab") {
+            gene.set.list <- read_cpdb_tab(gene.sets, sourceDB)
+        } else {
+            stop("gene.sets must be in .rds (list object), .gmt, or 
+                 .tab format")
+        }
     }
-  }
-
-  de.stats <- deResults$table$logFC
-  names(de.stats) <- rownames(deResults$table)
   
-  fgsea.res <- list(res = fgsea::fgseaMultilevel(pathways = gene.set.list,
-                                                 stats = de.stats,
-                                                 minSize = min.set))
-  
-  return(fgsea.res)
+    de.stats <- deResults$table$logFC
+    names(de.stats) <- rownames(deResults$table)
+    
+    fgsea.res <- list(res = fgsea::fgseaMultilevel(pathways = gene.set.list,
+                                                   stats = de.stats,
+                                                   minSize = min.set))
+    
+    return(fgsea.res)
   
 }

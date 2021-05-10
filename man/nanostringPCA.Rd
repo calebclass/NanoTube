@@ -36,12 +36,15 @@ ggplot2 or plotly.
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 # Process and normalize data first
 dat <- processNanostringData(example_data, 
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-                             normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+                             sampleTab = sample_data, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "t.test", bgPVal = 0.01)
                                
 # Interactive PCA using plotly                             
 nanostringPCA(dat, interactive.plot = TRUE)$plt

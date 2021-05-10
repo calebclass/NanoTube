@@ -23,34 +23,35 @@ makeFGSEAmasterTable <- function(genesetResults, leadingEdge,
                                  dist.method = "binary",
                                  filename = NULL) {
 
-  geneset.clustered <- list()
-
-  for (i in names(genesetResults)) {
-    
-    if (is.null(leadingEdge[[i]])) {
-      temp <-  genesetResults[[i]]
-      temp$Cluster <- NA
-      temp$Cluster.Max <- ""
-      colnames(temp)[2:3] <- c("p.val", "p.adj")
-      geneset.clustered[[i]] <- temp[,-8]
-    } else {
-      geneset.clustered[[i]] <- groupFGSEA(genesetResults[[i]], 
-                                           leadingEdge[[i]],
-                                           join.threshold, ngroups,
-                                           dist.method, returns="all")
+    geneset.clustered <- list()
+  
+    for (i in names(genesetResults)) {
+      
+        if (is.null(leadingEdge[[i]])) {
+            temp <-  genesetResults[[i]]
+            temp$Cluster <- NA
+            temp$Cluster.Max <- ""
+            colnames(temp)[2:3] <- c("p.val", "p.adj")
+            geneset.clustered[[i]] <- temp[,-8]
+        } else {
+            geneset.clustered[[i]] <- groupFGSEA(genesetResults[[i]], 
+                                                 leadingEdge[[i]],
+                                                 join.threshold, ngroups,
+                                                 dist.method, returns="all")
+        }
+        
+        colnames(geneset.clustered[[i]])[-1] <- 
+          paste0(colnames(geneset.clustered[[i]])[-1], " (", i, ")")
     }
-    
-    colnames(geneset.clustered[[i]])[-1] <- 
-      paste0(colnames(geneset.clustered[[i]])[-1], " (", i, ")")
-  }
-
-  dat.xpt <- Reduce(function(...) merge(..., all=TRUE, by="pathway"), 
-                    geneset.clustered)
-
-  if (!is.null(filename)) {
-    write.table(dat.xpt, filename,
-                row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-  } else {
-    return(dat.xpt)
-  }
+  
+    dat.xpt <- Reduce(function(...) merge(..., all=TRUE, by="pathway"), 
+                      geneset.clustered)
+  
+    if (!is.null(filename)) {
+        write.table(dat.xpt, filename,
+                    row.names = FALSE, col.names = TRUE, 
+                    sep = "\t", quote = FALSE)
+    } else {
+        return(dat.xpt)
+    }
 }

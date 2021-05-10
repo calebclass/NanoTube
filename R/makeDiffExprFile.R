@@ -35,54 +35,55 @@
 makeDiffExprFile <- function(limmaResults, filename = NULL,
                              returns = c("all", "stats"),
                              skip.first = TRUE) {
-  dat.scaled <- exprs(limmaResults$eset) -
-    apply(exprs(limmaResults$eset)[,limmaResults$eset$group == 
-                                     levels(limmaResults$eset$group)[1]], 
-          1, median)
-
-  dat.scaled <- dat.scaled[,order(limmaResults$eset$group)]
-
-  limma.dat <- list()
-
-  inc <- colnames(limmaResults$t)
-  if (skip.first) inc <- inc[-1]
-
-  for (i in inc) {
-    limma.dat[[i]] <- cbind(limmaResults$coefficients[,i], 
-                            limmaResults$t[,i], 
-                            limmaResults$p.value[,i], 
-                            limmaResults$q.value[,i])
-    colnames(limma.dat[[i]]) <- 
-      paste0(c("Log2FC (", "t (", "p-val (", "q-val ("), i, ")")
-  }
-  limma.tab <- do.call(cbind, limma.dat)
-
-  if (returns == "stats") {
-
-    limma.tab <- signif(limma.tab, digits = 2)
-
-    if (!is.null(filename)) {
-      dat.xpt <- cbind(rownames(limma.tab), limma.tab)
-      colnames(dat.xpt)[1] <- "Symbol"
-      write.table(dat.xpt, filename,
-                  row.names = FALSE, col.names = TRUE, 
-                  sep = "\t", quote = FALSE)
-    } else {
-      return(limma.tab)
+  
+    dat.scaled <- exprs(limmaResults$eset) -
+      apply(exprs(limmaResults$eset)[,limmaResults$eset$group == 
+                                       levels(limmaResults$eset$group)[1]], 
+            1, median)
+  
+    dat.scaled <- dat.scaled[,order(limmaResults$eset$group)]
+  
+    limma.dat <- list()
+  
+    inc <- colnames(limmaResults$t)
+    if (skip.first) inc <- inc[-1]
+  
+    for (i in inc) {
+        limma.dat[[i]] <- cbind(limmaResults$coefficients[,i], 
+                                limmaResults$t[,i], 
+                                limmaResults$p.value[,i], 
+                                limmaResults$q.value[,i])
+        colnames(limma.dat[[i]]) <- 
+          paste0(c("Log2FC (", "t (", "p-val (", "q-val ("), i, ")")
     }
-  } else {
-
-    dat.xpt <- cbind(limma.tab, dat.scaled)
-
-    if (!is.null(filename)) {
-      dat.xpt <- cbind(rownames(dat.xpt), dat.xpt)
-      colnames(dat.xpt)[1] <- "Symbol"
-      write.table(dat.xpt, filename,
-                  row.names = FALSE, col.names = TRUE, 
-                  sep = "\t", quote = FALSE)
+    limma.tab <- do.call(cbind, limma.dat)
+  
+    if (returns == "stats") {
+  
+      limma.tab <- signif(limma.tab, digits = 2)
+  
+      if (!is.null(filename)) {
+          dat.xpt <- cbind(rownames(limma.tab), limma.tab)
+          colnames(dat.xpt)[1] <- "Symbol"
+          write.table(dat.xpt, filename,
+                      row.names = FALSE, col.names = TRUE, 
+                      sep = "\t", quote = FALSE)
+      } else {
+          return(limma.tab)
+      }
     } else {
-      return(dat.xpt)
+  
+        dat.xpt <- cbind(limma.tab, dat.scaled)
+    
+        if (!is.null(filename)) {
+            dat.xpt <- cbind(rownames(dat.xpt), dat.xpt)
+            colnames(dat.xpt)[1] <- "Symbol"
+            write.table(dat.xpt, filename,
+                        row.names = FALSE, col.names = TRUE, 
+                        sep = "\t", quote = FALSE)
+        } else {
+            return(dat.xpt)
+        }
     }
-  }
 
 }

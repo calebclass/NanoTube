@@ -17,12 +17,15 @@
 #' 
 #' @examples
 #' example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+#' sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+#'                            package = "NanoTube")
 #' 
 #' # Process and normalize data first
 #' dat <- processNanostringData(example_data, 
-#'                              sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-#'                              normalization = "nSolver", bgType = "threshold", 
+#'                              sampleTab = sample_data, 
+#'                              groupCol = "Sample_Diagnosis",
+#'                              normalization = "nSolver", 
+#'                              bgType = "threshold", 
 #'                              bgThreshold = 2, bgProportion = 0.5,
 #'                              output.format = "list")
 #' 
@@ -34,48 +37,52 @@
 
 negativeQC <- function(ns, interactive.plot = FALSE) {
   
-  if (ns$normalization != "nSolver") {
-    stop("Must run processNanostringData with normalization = 'nSolver' prior
-         to using this function")
-  }
-  
-  if (class(ns) != "list") {
-    stop("Must run processNanostringData with output.format = 'list' prior
-         to using this function")
-  }
-  
-  # Bind local variables
-  Count <- Sample <- Gene <- NULL
-  
-  # Strip plot for negative control genes
-  dat.neg <- as.data.frame(ns$exprs.raw[ns$dict.raw$CodeClass == "Negative",])
-  dat.neg$Gene <- ns$dict.raw$Name[ns$dict.raw$CodeClass == "Negative"]
-  
-  dat.neg.df <- reshape::melt(dat.neg, "Gene")
-  colnames(dat.neg.df)[2:3] <- c("Sample", "Count")
-  
-  
-  # Negative Table
-  if (ncol(ns$bg.stats) == 3) {
-    neg.tab <- round(ns$bg.stats, 2)
-  } else {
-    neg.tab <- round(ns$bg.stats[,1:4], 2)
-    neg.tab$fail <- paste0(ns$bg.stats$num.less.bg, " (",
-                           round(ns$bg.stats$frc.less.bg*100, 1), "%)")
-    colnames(neg.tab) <- c("Mean (Neg)", "Max (Neg)", "sd (Neg)", "Background cutoff", 
-                           "Genes below BG (%)")
-  }
-  
-  neg.plot <- ggplot(data = dat.neg.df, aes(x=Count, y=Sample, 
-                                        text=paste0("Sample: ", Sample, "\nGene: ", Gene, "\nCount: ", Count))) +
-    geom_jitter(height = 0.2, width = 0, colour = "black", fill = "grey70", pch=21) +
-    theme_classic() + ylab("") 
-  
-  if (interactive.plot) {
-    neg.plot <- plotly::ggplotly(neg.plot, tooltip = c("text"), width = 550, height = 400) # %>%   # need to check this
-#      layout(margin = list(l=90), autosize = FALSE)
-  }
-  
-  return(list(tab = neg.tab,
-              plt = neg.plot))
+    if (ns$normalization != "nSolver") {
+        stop("Must run processNanostringData with normalization = 'nSolver' 
+             prior to using this function")
+    }
+    
+    if (class(ns) != "list") {
+        stop("Must run processNanostringData with output.format = 'list' prior
+             to using this function")
+    }
+    
+    # Bind local variables
+    Count <- Sample <- Gene <- NULL
+    
+    # Strip plot for negative control genes
+    dat.neg <- as.data.frame(ns$exprs.raw[ns$dict.raw$CodeClass == "Negative",])
+    dat.neg$Gene <- ns$dict.raw$Name[ns$dict.raw$CodeClass == "Negative"]
+    
+    dat.neg.df <- reshape::melt(dat.neg, "Gene")
+    colnames(dat.neg.df)[2:3] <- c("Sample", "Count")
+    
+    
+    # Negative Table
+    if (ncol(ns$bg.stats) == 3) {
+        neg.tab <- round(ns$bg.stats, 2)
+    } else {
+        neg.tab <- round(ns$bg.stats[,seq_len(4)], 2)
+        neg.tab$fail <- paste0(ns$bg.stats$num.less.bg, " (",
+                               round(ns$bg.stats$frc.less.bg*100, 1), "%)")
+        colnames(neg.tab) <- c("Mean (Neg)", "Max (Neg)", "sd (Neg)", 
+                               "Background cutoff", 
+                               "Genes below BG (%)")
+    }
+    
+    neg.plot <- ggplot(data = dat.neg.df, 
+                       aes(x=Count, y=Sample, 
+                           text=paste0("Sample: ", Sample, "\nGene: ", Gene, 
+                                       "\nCount: ", Count))) +
+      geom_jitter(height = 0.2, width = 0, colour = "black", 
+                  fill = "grey70", pch=21) +
+      theme_classic() + ylab("") 
+    
+    if (interactive.plot) {
+        neg.plot <- plotly::ggplotly(neg.plot, tooltip = c("text"), 
+                                     width = 550, height = 400)
+    }
+    
+    return(list(tab = neg.tab,
+                plt = neg.plot))
 }

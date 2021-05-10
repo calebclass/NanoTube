@@ -8,10 +8,10 @@
 #' @return Names of now-unzipped directories
 
 unzip_dirs <- function(fileDirs) {
-  print(getwd())
-  new.fileDirs <- gsub("\\.zip|\\.ZIP", "", fileDirs)
-  for (i in 1:length(fileDirs)) {
-    unzip(fileDirs[i], exdir = new.fileDirs[i])
-  }
-  return(new.fileDirs)
+    print(getwd())
+    new.fileDirs <- gsub("\\.zip|\\.ZIP", "", fileDirs)
+    for (i in seq_along(fileDirs)) {
+        unzip(fileDirs[i], exdir = new.fileDirs[i])
+    }
+    return(new.fileDirs)
 }

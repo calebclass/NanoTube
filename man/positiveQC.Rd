@@ -10,8 +10,8 @@ positiveQC(ns, samples = NULL, expected = NULL)
 \item{ns}{NanoString data, processed by `processNanostringData` with
 normalization set to 'none' or with output.format set to 'list'.}
 
-\item{samples}{A subset of samples to analyze (either a vector of sample names,
-or column indexes). If NULL (default), will include all samples.}
+\item{samples}{A subset of samples to analyze (either a vector of sample 
+names, or column indexes). If NULL (default), will include all samples.}
 
 \item{expected}{The expected values of each positive control gene, as a 
 numeric vector. These are frequently provided by NanoString in the 'Name' 
@@ -24,28 +24,35 @@ A list object containing:
 scale factor and the R-squared value for the expected vs. measured counts}
 \item{plt}{An object containing the positive control plots. This gets
 cumbersome if there are lots of samples.}
-
-#' @examples
+}
+\description{
+Calculate the linearity and scale factors of positive control genes, and
+plot the expected vs. observed counts for each sample.
+}
+\examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", 
+                           "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
-# Process and normalize data first
+# Process data first. Must be output as a "list" or without normalization to
+# obtain positive control statistics
 dat <- processNanostringData(example_data, 
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
-                             normalization = "nSolver", bgType = "t.test", bgPVal = 0.01)
+                             sampleTab = sample_data, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01,
+                             output.format = "list")
 
 # Generate positive QC metrics for all samples
 posQC <- positiveQC(dat) 
 
 # View positive QC table & plot
-posQC$tab
+head(posQC$tab)
 posQC$plt
 
 # Plot for only the first three samples
 posQC <- positiveQC(dat, samples = 1:3)
 posQC$plt
-}
-\description{
-Calculate the linearity and scale factors of positive control genes, and
-plot the expected vs. observed counts for each sample.
 }

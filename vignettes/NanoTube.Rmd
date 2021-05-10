@@ -14,7 +14,8 @@ vignette: >
 knitr::opts_chunk$set(tidy = FALSE,
                       cache = FALSE,
                       dev = "png",
-                      message = FALSE, error = FALSE, warning = TRUE)
+                      message = FALSE, error = FALSE, warning = TRUE,
+                      fig.height = 4, fig.width = 4)
 ```
 
 
@@ -47,12 +48,12 @@ sample_info <- system.file("extdata",
 
 ```
 
-A variety of data processing and normalization options are provided in `processNanostringData`.
-A set of default options recommended by nCounter can be run automatically, or
-they can be specified and customized. More details are provided in the 
-"Processing Data" section. This function also merges the expression data with 
-the sample characteristics table (if provided), and outputs as an Biobase 
-ExpressionSet.
+A variety of data processing and normalization options are provided in 
+`processNanostringData`. A set of default options recommended by nCounter can 
+be run automatically, or they can be specified and customized. More details 
+are provided in the "Processing Data" section. This function also merges the 
+expression data with the sample characteristics table (if provided), and 
+outputs as an Biobase ExpressionSet.
 
 ```{r Basic2, warning = FALSE}
 
@@ -92,14 +93,16 @@ limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
 limmaStats <- as.data.frame(limmaStats)
 
 # Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
-head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
-                      decreasing = FALSE), 1:4])
+knitr::kable(head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
+                      decreasing = FALSE), 1:4]), 
+      row.names = TRUE, format = "html", align = "c")
+
 
 ```
 
 A volcano plot can also be drawn using deVolcano.
 
-```{r BasicVol, fig.height = 5, fig.width = 5}
+```{r BasicVol}
 
 deVolcano(limmaResults, plotContrast = "Autoimmune.retinopathy")
 
@@ -126,8 +129,11 @@ names(fgseaResults)
 
 ```{r BasicTab}
 
-head(fgseaResults$Autoimmune.retinopathy[
-  order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),])
+knitr::kable(head(fgseaResults$Autoimmune.retinopathy[
+             order(fgseaResults$Autoimmune.retinopathy$pval, 
+                   decreasing = FALSE),]), 
+      row.names = TRUE, format = "html", align = "c")
+
 
 ```
 
@@ -141,8 +147,8 @@ by imported by NanoTube. Two functions are provided in this package:
 `read_rcc`, which reads in a single RCC file, and `read_merge_rcc` which reads
 in a vector of RCC file names and combines the data. 
 
-`processNanostringData` includes the reading of these data files, in addition to 
-optional quality control and normalization steps. These are described in the
+`processNanostringData` includes the reading of these data files, in addition 
+to optional quality control and normalization steps. These are described in the
 'Quality Control' and 'Normalization' sections. Normalization can be skipped
 in this function using `normalization = "none"`. The housekeeping normalization
 step can be skipped (retaining positive control normalization) using
@@ -271,7 +277,7 @@ knitr::kable(head(posQC$tab),
 Positive control genes can be plotted for all samples (default), or a specified
 subset of samples (specified by column index, or sample names).
 
-```{r qcPos2}
+```{r qcPos2, fig.width = 7}
 
 posQC2 <- positiveQC(dat, samples = 1:6)
 
@@ -295,7 +301,7 @@ knitr::kable(head(negQC$tab),
 
 Negative control genes can also be plotted for each sample.
 
-```{r qcNeg2, fig.height = 7}
+```{r qcNeg2, fig.height = 7, fig.width = 7}
 
 negQC$plt
 
@@ -316,7 +322,7 @@ PCA can be conducted after processing and normalization. We provide a standard
 plot using `ggplot2` or an interactive plot using `plotly` (use the 
 `interactive.plot` option).
 
-```{r pca, warning = FALSE}
+```{r pca, warning = FALSE, fig.width = 6}
 
 dat <- processNanostringData(example_data, 
                              sampleTab = sample_info, 
@@ -333,7 +339,7 @@ nanostringPCA(dat, interactive.plot = TRUE)$plt
 We default to plotting the first two principal components, but you can also
 choose others.
 
-```{r pca2, warning = FALSE}
+```{r pca2, warning = FALSE, fig.width = 6}
 
 nanostringPCA(dat, pc1=3, pc2=4, interactive.plot = FALSE)$plt
 
@@ -375,7 +381,7 @@ head(limmaResults$coefficients)
 You can also directly define a design matrix, instead. For example, if this data
 were collected in two batches, you could include a batch term in the analysis.
 
-```{r deLimma2}
+```{r deLimma2, fig.height = 3.5}
 
 # Generate fake batch labels
 batch <- rep(c(0, 1), times = ncol(dat) / 2)
@@ -427,7 +433,10 @@ limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
 limmaStats <- as.data.frame(limmaStats)
 
 # Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
-head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, decreasing = FALSE),])
+knitr::kable(head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
+                                   decreasing = FALSE),]), 
+      row.names = TRUE, format = "html", align = "c")
+
 
 ```
 
@@ -482,9 +491,9 @@ useful to consider whether Gene Set Enrichment Analysis is appropriate for
 your specific data set, based on the number and types of genes represented in
 your chip, and whether any of them were actually differentially expressed.
 
-Gene set databases can be loaded as a list object (either directly or in an .rds 
-file), or as a .gmt (MSigDB or similar) or .tab (CPDB) file. We have included a 
-list of pathways from WikiPathways [@martens_wikipathways_2021].  
+Gene set databases can be loaded as a list object (either directly or in an 
+.rds file), or as a .gmt (MSigDB or similar) or .tab (CPDB) file. We have 
+included a list of pathways from WikiPathways [@martens_wikipathways_2021].  
 
 The `min.set` option is important, as pathways containing only a few genes 
 present in your data set will probably not provide informative enrichment 
@@ -522,7 +531,9 @@ potential pathway of interest.
 fgsea.ordered <- fgseaResults$Autoimmune.retinopathy[
     order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),]
 
-fgsea.ordered[1:5,]
+knitr::kable(fgsea.ordered[1:5,], 
+      row.names = TRUE, format = "html", align = "c")
+
 
 ```
 

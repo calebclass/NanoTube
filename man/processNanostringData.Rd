@@ -25,78 +25,86 @@ processNanostringData(
 )
 }
 \arguments{
-\item{nsFiles}{file path (or zip file) containing the .rcc files, or multiple directories in
-a character vector, or a single text/csv file containing the combined counts.}
+\item{nsFiles}{file path (or zip file) containing the .rcc files, or multiple
+directories in a character vector, or a single text/csv file containing the 
+combined counts.}
 
-\item{sampleTab}{.txt (tab-delimited) or .csv (comma-delimited) file containing sample data
-table (optional, default NULL)}
+\item{sampleTab}{.txt (tab-delimited) or .csv (comma-delimited) file 
+containing sample data table (optional, default NULL)}
 
 \item{idCol}{the column name of the sample identifiers in the sample table,
 which should correspond to the column names in the count table 
 (default NULL: will assume the first column contains the sample identifiers)}
 
-\item{groupCol}{the column name of the group identifiers in the sample table (required
-if sampleTab is provided).}
+\item{groupCol}{the column name of the group identifiers in the sample table
+(required if sampleTab is provided).}
 
 \item{replicateCol}{the column name of the technical replicate identifiers 
-(default NULL). Multiple replicates of the same sample will have the same value in 
-this column. Replicates are used to improve normalization performance in the
-"RUV" method; otherwise they are averaged.}
+(default NULL). Multiple replicates of the same sample will have the same 
+value in this column. Replicates are used to improve normalization 
+performance in the "RUV" method; otherwise they are averaged.}
 
-\item{normalization}{If "nSolver" (default), continues with background, positive 
-control, and housekeeping control normalization steps to return
+\item{normalization}{If "nSolver" (default), continues with background, 
+positive control, and housekeeping control normalization steps to return
 a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
 controls, housekeeping genes and technical replicates. If "none", returns a 
 NanoStringSet with the raw counts, suitable for running NanoStringDiff.}
 
-\item{bgType}{Only if (normalization=="nSolver"): Type of background correction to use: 
-"threshold" sets a threshold for N standard deviations above the mean of 
-negative controls. "t.test" conducts a one-sided t test for each gene against 
-all negative controls.}
+\item{bgType}{Only if (normalization=="nSolver"): Type of background 
+correction to use: "threshold" sets a threshold for N standard deviations 
+above the mean of negative controls. "t.test" conducts a one-sided t test 
+for each gene against all negative controls.}
 
-\item{bgThreshold}{If bgType=="threshold", number of sd's above the mean to set as threshold
-for background correction.}
+\item{bgThreshold}{If bgType=="threshold", number of sd's above the mean to 
+set as threshold for background correction.}
 
-\item{bgProportion}{If bgType=="threshold", proportion of samples that a gene must be above threshold to
-be included in analysis.}
+\item{bgProportion}{If bgType=="threshold", proportion of samples that a gene
+must be above threshold to be included in analysis.}
 
-\item{bgPVal}{If bgType=="t.test", p-value threshold to use for gene to be included in analysis.}
+\item{bgPVal}{If bgType=="t.test", p-value threshold to use for gene to be 
+included in analysis.}
 
-\item{bgSubtract}{Should calculated background levels be subtracted from reported expressions?
-If TRUE, will subtract mean+numSD*sd of the negative controls from the endogenous genes,
-and then set negative values to zero (default FALSE)}
+\item{bgSubtract}{Should calculated background levels be subtracted from 
+reported expressions? If TRUE, will subtract mean+numSD*sd of the negative 
+controls from the endogenous genes, and then set negative values to zero 
+(default FALSE)}
 
-\item{housekeeping}{vector of genes (symbols or accession) to use for housekeeping correction. If NULL,
-will use genes listed as "Housekeeping" under CodeClass.}
+\item{housekeeping}{vector of genes (symbols or accession) to use for 
+housekeeping correction. If NULL, will use genes listed as "Housekeeping" 
+under CodeClass.}
 
 \item{skip.housekeeping}{Skip housekeeping normalization? (default FALSE)}
 
-\item{includeQC}{Should we include the QC from the .rcc files? This can cause errors,
-particularly when reading in files from multiple experiments.}
+\item{includeQC}{Should we include the QC from the .rcc files? This can 
+cause errors, particularly when reading in files from multiple experiments.}
 
-\item{sampIds}{a vector of sample identifiers, important if there are technical replicates.
-Currently, this function averages technical replicates. sampIds will be extracted
-from the replicateCol in the sampleTab, if provided.}
+\item{sampIds}{a vector of sample identifiers, important if there are 
+technical replicates. Currently, this function averages technical replicates.
+sampIds will be extracted from the replicateCol in the sampleTab, if 
+provided.}
 
-\item{output.format}{If "list", will return the normalized (optional) and raw expression data,
-as well as various QC and relevant information tables. If "ExpressionSet" (default),
-will convert to an n*p ExpressionSet, with n rows representing genes and
-p columns representing samples.}
+\item{output.format}{If "list", will return the normalized (optional) and raw
+expression data, as well as various QC and relevant information tables. If 
+"ExpressionSet" (default), will convert to an n*p ExpressionSet, with n rows
+representing genes and p columns representing samples.}
 
-\item{logfile}{a filename for the logfile (optional). If blank, will print warnings to screen.}
+\item{logfile}{a filename for the logfile (optional). If blank, will print 
+warnings to screen.}
 }
 \value{
-An list or ExpressionSet containing the raw and/or normalized counts, dictionary,
-and sample info if provided
+An list or ExpressionSet containing the raw and/or normalized 
+counts, dictionary, and sample info if provided
 }
 \description{
 This function reads in a zip file or folder containing multiple .rcc files 
 (or a txt/csv file containing raw count data), and then optionally conducts 
-positive control normalization, background correction, and housekeeping normalization.
+positive control normalization, background correction, and housekeeping 
+normalization.
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
-sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "NanoTube")
+sample_data <- system.file("extdata", "GSE117751_sample_data.csv", 
+                           package = "NanoTube")
 
 # Process NanoString data from RCC files present in example_data folder.
 # Use standard nCounter normalization, removing genes that do
@@ -104,7 +112,8 @@ sample_data <- system.file("extdata", "GSE117751_sample_data.csv", package = "Na
 # result as an "ExpressionSet".
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_data, 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              output.format = "ExpressionSet")
@@ -112,22 +121,26 @@ dat <- processNanostringData(nsFiles = example_data,
 # Load NanoString data from a csv file (from NanoString's RCC Collector tool,
 # for example). Skip normalization by setting 'normalization = "none"'.
 
-csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", package = "NanoTube")
+csv_data <- system.file("extdata", "GSE117751_expression_matrix.csv", 
+                        package = "NanoTube")
 dat <- processNanostringData(nsFile = csv_data,
                               sampleTab = sample_data, 
-                              idCol = "GEO_Accession", groupCol = "Sample_Diagnosis",
+                              idCol = "GEO_Accession", 
+                              groupCol = "Sample_Diagnosis",
                               normalization = "none")
                               
 # Load NanoString data from RCC files, using a threshold background level for
-# removing low-expressed genes. Also, specify which genes to use for housekeeping 
-# normalization. Save the result in "list" format (useful for some
-# QC functions) instead of an "ExpressionSet".
+# removing low-expressed genes. Also, specify which genes to use for 
+# housekeeping normalization. Save the result in "list" format (useful for
+# some QC functions) instead of an "ExpressionSet".
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_data, groupCol = "Sample_Diagnosis",
+                             sampleTab = sample_data, 
+                             groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "threshold", 
                              bgThreshold = 2, bgProportion = 0.5,
-                             housekeeping = c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA"),
+                             housekeeping = c("TUBB", "TBP", "POLR2A", 
+                                              "GUSB", "SDHA"),
                              output.format = "list")
 }

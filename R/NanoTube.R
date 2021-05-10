@@ -6,7 +6,8 @@
 #' @name NanoTube
 #' @docType package
 #' @import Biobase ggplot2 fgsea limma reshape
-#' @importFrom stats cor cutree dist hclust median model.matrix p.adjust prcomp sd t.test
+#' @importFrom stats cor cutree dist hclust median model.matrix 
+#' @importFrom p.adjust prcomp sd t.test
 #' @importFrom utils read.csv read.delim unzip write.table
 NULL
 
@@ -23,7 +24,8 @@ NULL
 
 #' Example results from runLimmaAnalysis
 #' 
-#' Results of runLimmaAnalysis using the example data set GSE117751 (in extdata).
+#' Results of runLimmaAnalysis using the example data set GSE117751 
+#' (in extdata).
 #' 
 #' @name ExampleResults
 #' @docType data

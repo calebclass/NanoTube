@@ -9,12 +9,12 @@
 #' each one.
 
 read_cpdb_sourceDBs <- function(file) {
-  if (!grepl("\\.tab$", file)[1]) {
-    stop("Pathway information must be a .tab file")
-  }
-  
-  geneSetTable <- read.delim(file,
-                             stringsAsFactors = FALSE)
-  
-  return(table(geneSetTable[,3]))
+    if (!grepl("\\.tab$", file)[1]) {
+        stop("Pathway information must be a .tab file")
+    }
+    
+    geneSetTable <- read.delim(file,
+                               stringsAsFactors = FALSE)
+    
+    return(table(geneSetTable[,3]))
 }

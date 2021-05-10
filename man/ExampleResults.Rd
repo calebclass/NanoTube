@@ -11,6 +11,7 @@ An MArrayLM object from limma
 data(ExampleResults)
 }
 \description{
-Results of runLimmaAnalysis using the example data set GSE117751 (in extdata).
+Results of runLimmaAnalysis using the example data set GSE117751 
+(in extdata).
 }
 \keyword{datasets}
