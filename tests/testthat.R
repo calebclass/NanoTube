@@ -1,4 +1,4 @@
 library(testthat)
-library(NanoTube-Project)
+library(NanoTube)
 
-test_check("NanoTube-Project")
+test_check("NanoTube")

@@ -29,16 +29,17 @@ contained in each gene set cluster.
 data("ExamplePathways")
 data("ExampleResults") # Results from runLimmaAnalysis
 
-fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways)
+fgseaResults <- limmaToFGSEA(ExampleResults, gene.sets = ExamplePathways,
+                             min.set = 5, rank.by = "t")
 leadingEdge <- fgseaToLEdge(fgseaResults, cutoff.type = "padj", cutoff = 0.1)
 
-fgsea.grouped <- groupFGSEA(fgseaResults$Autoimmune.retinopathy, 
+fgseaGrouped <- groupFGSEA(fgseaResults$Autoimmune.retinopathy, 
                             leadingEdge$Autoimmune.retinopathy,
                             join.threshold = 0.5,
                             dist.method = "binary")
 
 results.AR <- groupedGSEAtoStackedReport(
-              fgsea.grouped,
+              fgseaGrouped,
               leadingEdge = leadingEdge$Autoimmune.retinopathy,
               de.fit = ExampleResults)
 }

@@ -160,7 +160,6 @@ processNanostringData <- function(nsFiles,
         # Remove periods or spaces from dictionary colnames
         colnames(dat$dict) <- gsub("\\.| ", "", colnames(dat$dict))
       
-      
     } else {
       
         # Extract from nsFiles, if zipped
@@ -171,19 +170,16 @@ processNanostringData <- function(nsFiles,
         # Get filenames (combines files from multiple directories if necessary)
         fileNames <- unlist(lapply(nsFiles, list.files, full.names = TRUE))
         
-        cat("\nReading in .RCC files......",
-            file=logfile, append=TRUE)
+        cat("\nReading in .RCC files......", file=logfile, append=TRUE)
         
         # Read in .rcc files
         dat <- read_merge_rcc(fileNames, includeQC, logfile)
     }
     
     # Read in sample data file, if provided.
-    if (!is.null(sampleTab)) {
-        dat <- read_sampleData(dat, file.name = sampleTab,
-                               idCol = idCol, groupCol = groupCol, 
-                               replicateCol = replicateCol)
-    }
+    if (!is.null(sampleTab)) dat <- read_sampleData(dat, file.name = sampleTab,
+                                      idCol = idCol, groupCol = groupCol, 
+                                      replicateCol = replicateCol)
     
     # Mark specified genes as housekeeping (may already be marked)
     dat$dict$CodeClass[dat$dict$Name %in% housekeeping | 
@@ -191,9 +187,7 @@ processNanostringData <- function(nsFiles,
     
     # Average counts for technical replicates or normalize using RUV.
     # Use the replicate ID's extracted from the sampleTab, if applicable.
-    if ("replicates" %in% names(dat)) {
-        sampIds <- dat$replicates
-    }
+    if ("replicates" %in% names(dat)) sampIds <- dat$replicates
     
     # Or use the ID's provided directly.
     # Then average replicates, or normalize using "RUV".
@@ -235,12 +229,11 @@ processNanostringData <- function(nsFiles,
         dat$samples <- dat$samples[!duplicated(sampIds),]
         if (includeQC) dat$qc <- dat$qc[!duplicated(sampIds),]
         if ("groups" %in% names(dat))
-          dat$groups <- dat$groups[!duplicated(sampIds)]
+            dat$groups <- dat$groups[!duplicated(sampIds)]
     }
     
     # Normalize using nSolver recommended method:
     if (normalization == "nSolver") {
-        # Normalize positive controls
         cat("\nCalculating positive scale factors......",
             file=logfile, append=TRUE)
         dat.norm <- normalize_pos_controls(dat, logfile)
@@ -254,7 +247,6 @@ processNanostringData <- function(nsFiles,
                                       proportionReq = bgProportion,
                                       pval = bgPVal, subtract = bgSubtract)
         
-        # Normalize housekeeping
         if (!skip.housekeeping) {
             cat("\nConducting housekeeping normalization......",
                 file=logfile, append=TRUE)
@@ -279,21 +271,19 @@ processNanostringData <- function(nsFiles,
         return(dat)
       
     } else {
-        # Convert to ExpressionSet
         dat.out <- ExpressionSet(assayData = as.matrix(dat$exprs),
                                  featureData = AnnotatedDataFrame(dat$dict))
         
         if ("samples" %in% names(dat))
-          phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
+            phenoData(dat.out) <- AnnotatedDataFrame(dat$samples)
         if ("groups" %in% names(dat)) phenoData(dat.out)$groups <- dat$groups
         
         phenoData(dat.out)$normalization <- normalization
         
         if (includeQC)
           phenoData(dat.out) <-
-          AnnotatedDataFrame(cbind(pData(dat.out), dat$qc))
+              AnnotatedDataFrame(cbind(pData(dat.out), dat$qc))
         
         return(dat.out)
     }
-  
 }

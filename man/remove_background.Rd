@@ -64,7 +64,7 @@ dat <- remove_background(dat, mode = "t.test", pval = 0.05)
 
 # Remove endogenous genes where fewer than 25\% of samples have an expression
 # 2 standard deviations above the average negative control gene. Also, 
-# subtract this background level (mean + 2*sd) from endogenous control genes. 
+# subtract this background level (mean + 2*sd) from endogenous genes.
 dat <- remove_background(dat, mode = "threshold", 
                          numSD = 2, proportionReq = 0.25, subtract = TRUE)
 }

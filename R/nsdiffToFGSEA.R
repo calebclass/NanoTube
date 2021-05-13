@@ -31,7 +31,7 @@
 #'                                    normalization = "none")
 #'
 #' # Convert to NanoString Set, retaining 2 samples per group for this example
-#' # (will run faster, still might be slow)
+#' # (will run faster, but still pretty slow)
 #' nsDiffSet <- makeNanoStringSetFromEset(datNoNorm[,c(1,2,15,16,29,30)])
 #' 
 #' # Run NanoStringDiff analysis

@@ -4,9 +4,9 @@ author: "Caleb A Class"
 output: rmarkdown::html_vignette
 bibliography: NanoTube.bib
 vignette: >
-  %\VignetteIndexEntry{NanoTube Vignette}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+    %\VignetteIndexEntry{NanoTube Vignette}
+    %\VignetteEngine{knitr::rmarkdown}
+    \usepackage[utf8]{inputenc}
 ---
 
 
