@@ -39,7 +39,7 @@ limmaToFGSEA <- function(limmaResults, gene.sets, sourceDB = NULL,
                          min.set = 1, rank.by = c('coefficients', 't'),
                          skip.first = TRUE) {
 
-    if (class(gene.sets) == "list") {
+    if (is(gene.sets, "list")) {
         gene.set.list <- gene.sets
     } else {
         file.type <- substr(gene.sets, start = nchar(gene.sets)-2, 

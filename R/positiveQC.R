@@ -56,7 +56,7 @@ positiveQC <- function(ns, samples = NULL, expected = NULL) {
         expected <- log2(expected)
     }
     
-    if (class(ns) == "list") {
+    if (is(ns, "list")) {
         dat.pos <-
             as.data.frame(log2(ns$exprs.raw[
                 ns$dict.raw$CodeClass == "Positive", ]))

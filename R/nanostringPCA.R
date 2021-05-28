@@ -40,7 +40,7 @@ nanostringPCA <- function(ns, pc1 = 1, pc2 = 2,
     # Bind local variables
     PC1 <- PC2 <- group <- NULL
     
-    if (class(ns) == "list") {
+    if (is(ns, "list")) {
         pca.dat <- ns$exprs[ns$dict$CodeClass == "Endogenous",]
     } else {
         pca.dat <- exprs(ns)[fData(ns)$CodeClass == "Endogenous",]

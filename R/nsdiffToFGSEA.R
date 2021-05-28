@@ -53,7 +53,7 @@
 nsdiffToFGSEA <- function(deResults, gene.sets, sourceDB = NULL,
                          min.set = 1) {
   
-    if (class(gene.sets) == "list") {
+    if (is(gene.sets, "list")) {
         gene.set.list <- gene.sets
     } else {
         file.type <- substr(gene.sets, start = nchar(gene.sets)-2, 

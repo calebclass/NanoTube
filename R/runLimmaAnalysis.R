@@ -84,7 +84,7 @@ runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
             }
         }
         
-        if (class(dat.limma$groups) == "factor") {
+        if (is(dat.limma$groups, "factor")) {
             dat.limma$groups <- 
               factor(dat.limma$groups, 
                      levels = c(base.group, levels(dat.limma$groups)

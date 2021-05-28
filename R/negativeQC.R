@@ -42,7 +42,7 @@ negativeQC <- function(ns, interactive.plot = FALSE) {
              prior to using this function")
     }
     
-    if (class(ns) != "list") {
+    if (!is(ns, "list")) {
         stop("Must run processNanostringData with output.format = 'list' prior
              to using this function")
     }
