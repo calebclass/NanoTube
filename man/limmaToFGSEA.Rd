@@ -41,7 +41,15 @@ comparison.
 \description{
 Use the fgsea library to run gene set enrichment analysis from the Limma
 analysis results. Genes will be ranked by their log2 fold changes
-or t-statistics.
+or t-statistics (specified using 'rank.by').
+}
+\details{
+Limma returns matrices of coefficients and t statistics with 
+columns for each column in the design matrix. This function will conduct a
+separate enrichment analysis on each column from the relevant matrix. Because
+the first column may be an "intercept" term, which is generally not relevant
+for enrichment analysis, the user may want to skip analysis for that term
+(using skip.first = TRUE, the default).
 }
 \examples{
 data("ExamplePathways")

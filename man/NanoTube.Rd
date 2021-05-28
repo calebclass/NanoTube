@@ -5,6 +5,6 @@
 \alias{NanoTube}
 \title{NanoTube.}
 \description{
-A package for NanoString nCounter gene expression data processing and
-analysis.
+A package for NanoString nCounter gene expression data processing,
+analysis, and visualization.
 }

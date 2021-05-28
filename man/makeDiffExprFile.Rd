@@ -32,8 +32,8 @@ A table of differential expression results
 \description{
 Make a data frame or text file containing coefficients, p-, and q-values 
 from Limma differential expression analysis. If returns == "all", will also 
-center the log-expressiondata on median of base.group expression and include
-the expression data in the output.
+center the log-expression data on the median of base.group expression, and 
+include the expression data in the output.
 }
 \examples{
 data("ExampleResults") # Results from runLimmaAnalysis

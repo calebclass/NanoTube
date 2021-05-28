@@ -4,7 +4,8 @@
 #' based on the enriched gene sets' leading edges. If the calculated distance 
 #' metric is lower than the given threshold (i.e. the gene sets have highly 
 #' overlapping leading edge genes), these gene sets will be joined to a single 
-#' gene set "cluster."
+#' gene set "cluster." Or if 'ngroups' is specified, gene sets will be clustered
+#' by similarity into that number of groups.
 #'
 #' @export
 #'

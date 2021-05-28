@@ -1,7 +1,7 @@
 #' NanoTube.
 #' 
-#' A package for NanoString nCounter gene expression data processing and
-#' analysis.
+#' A package for NanoString nCounter gene expression data processing,
+#' analysis, and visualization.
 #' 
 #' @name NanoTube
 #' @docType package

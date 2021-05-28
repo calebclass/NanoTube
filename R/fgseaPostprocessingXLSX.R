@@ -1,7 +1,7 @@
 #' Postprocessing for GSEA analyses for Excel
 #'
 #' Clusters GSEA results by leading edge genes, and writes reports showing
-#' gene expression profiles of these genes.
+#' gene expression profiles of these genes (to Excel).
 #'
 #' @export
 #'
