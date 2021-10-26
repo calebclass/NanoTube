@@ -1,7 +1,7 @@
 Package: NanoTube
 Type: Package
 Title: An Easy Pipeline for NanoString nCounter Data Analysis
-Version: 1.0.0
+Version: 1.1.0
 Date: 2021-05-19
 Authors@R: person("Caleb", "Class", email="cclass@butler.edu",
                   role = c("cre", "aut"), 
