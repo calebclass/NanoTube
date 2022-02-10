@@ -170,9 +170,16 @@ processNanostringData <- function(nsFiles,
         # Get filenames (combines files from multiple directories if necessary)
         fileNames <- unlist(lapply(nsFiles, list.files, full.names = TRUE))
         
+        # Retain only fileNames ending in "RCC"
+        # ('tolower' function makes it case-insensitive)
+        fileNames <- fileNames[
+          tolower(substr(fileNames, 
+                         start = nchar(fileNames)-2, 
+                         stop = nchar(fileNames))) == "rcc"]
+        
         cat("\nReading in .RCC files......", file=logfile, append=TRUE)
         
-        # Read in .rcc files
+        # Read in RCC files
         dat <- read_merge_rcc(fileNames, includeQC, logfile)
     }
     
