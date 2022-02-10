@@ -16,5 +16,5 @@ read_cpdb_sourceDBs <- function(file) {
     geneSetTable <- read.delim(file,
                                stringsAsFactors = FALSE)
     
-    return(table(geneSetTable[,3]))
+    return(table(geneSetTable$source))
 }

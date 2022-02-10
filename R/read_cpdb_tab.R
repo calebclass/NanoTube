@@ -18,21 +18,21 @@ read_cpdb_tab <- function(file, sourceDB = NULL) {
                                stringsAsFactors = FALSE)
     
     if (!is.null(sourceDB)) {
-        if (!(sourceDB %in% geneSetTable[,3])) {
+        if (!(sourceDB %in% geneSetTable$source)) {
             stop("'", sourceDB, 
                  "' is not one of the source databases in ", 
                  file)
         }
       
-        geneSetTable <- geneSetTable[geneSetTable[,3] == sourceDB,]
+        geneSetTable <- geneSetTable[geneSetTable$source == sourceDB,]
     }
     
-    geneSetDB <- strsplit(geneSetTable[,4], split = ",")
+    geneSetDB <- strsplit(geneSetTable[,ncol(geneSetTable)], split = ",")
     
     if (is.null(sourceDB)) {
-        names(geneSetDB) <- paste0(geneSetTable[,1], " | ", geneSetTable[,3])
+        names(geneSetDB) <- paste0(geneSetTable$pathway, " | ", geneSetTable$source)
     } else {
-        names(geneSetDB) <- geneSetTable[,1]
+        names(geneSetDB) <- geneSetTable$pathway
     }
     
     return(geneSetDB)
