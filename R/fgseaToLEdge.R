@@ -39,8 +39,8 @@ fgseaToLEdge <- function(fgsea.res,
     # Check cutoff
     cutoff.type <- cutoff.type[1]
     if (cutoff.type %in% c("padj", "pval")) {
-        if (cutoff <= 0 | cutoff > 1) {
-            stop("cutoff must be between 0 and 1 for 'pval' or 'padj'.")
+        if (cutoff <= 0) {
+            stop("cutoff cannot be negative for 'pval' or 'padj'.")
         }
     } else if (!(cutoff.type %in% c("padj", "pval", "NES", "none"))) {
         stop("cutoff.type must be 'padj', 'pval', 'NES', or 'none'.")
