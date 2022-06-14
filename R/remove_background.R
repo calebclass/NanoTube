@@ -60,9 +60,11 @@ remove_background <- function(dat,
             control genes found in input")
     }
     
-    negative.mean <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 
+    negative.mean <- apply(dat$exprs[grep("negative", dat$dict$CodeClass, 
+                                          ignore.case = TRUE),], 
                            2, mean)
-    negative.sd <- apply(dat$exprs[dat$dict$CodeClass == "Negative",], 2, sd)
+    negative.sd <- apply(dat$exprs[grep("negative", dat$dict$CodeClass, 
+                                        ignore.case = TRUE),], 2, sd)
     
     if (mode == "threshold" | subtract) {
         bg.threshold <- negative.mean + numSD * negative.sd
@@ -70,22 +72,26 @@ remove_background <- function(dat,
         dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
                                    Max.Neg =
                                      apply(dat$exprs[
-                                       dat$dict$CodeClass == "Negative", ],
+                                       grep("negative", dat$dict$CodeClass, 
+                                            ignore.case = TRUE), ],
                                            2, max), 
                                    sd.Neg = negative.sd,
                                    background = bg.threshold,
                                    num.less.bg = 
                                      colSums(t(t(dat$exprs[
-                                       dat$dict$CodeClass == "Endogenous" , ]) <
+                                       grep("endogenous", dat$dict$CodeClass, 
+                                            ignore.case = TRUE) , ]) <
                                                  bg.threshold)), 
                                    frc.less.bg = 
                                      colMeans(t(t(dat$exprs[
-                                       dat$dict$CodeClass == "Endogenous" , ]) <
+                                       grep("endogenous", dat$dict$CodeClass, 
+                                            ignore.case = TRUE) , ]) <
                                                   bg.threshold)))
     } else {
         dat$bg.stats <- data.frame(Mean.Neg = negative.mean,
                                    Max.Neg = apply(dat$exprs[
-                                     dat$dict$CodeClass == "Negative",], 
+                                     grep("negative", dat$dict$CodeClass, 
+                                          ignore.case = TRUE),], 
                                      2, max),
                                    sd.Neg = negative.sd)
     }
@@ -99,11 +105,14 @@ remove_background <- function(dat,
                                      pass = rep(NA, 
                                                 times=length(dat$dict$Name)))
         
-        rowsKeep <- ifelse(dat$dict$CodeClass == "Endogenous", 
+        rowsKeep <- ifelse(grepl("endogenous", dat$dict$CodeClass, 
+                                ignore.case = TRUE), 
                            yes = FALSE, no = TRUE)
-        background <- unlist(dat$exprs[dat$dict$CodeClass == "Negative",])
+        background <- unlist(dat$exprs[grep("negative", dat$dict$CodeClass, 
+                                            ignore.case = TRUE),])
         
-        for (i in which(dat$dict$CodeClass == "Endogenous")){
+        for (i in grep("endogenous", dat$dict$CodeClass, 
+                             ignore.case = TRUE)){
             ttest <- t.test(x = dat$exprs[i,], y = background, 
                             var.equal = FALSE, alternative = "greater")
             if (ttest$p.value < pval) {
@@ -115,7 +124,8 @@ remove_background <- function(dat,
         
         dat$gene.stats$pass <- rowsKeep
     } else {
-        rowsKeep <- which(dat$dict$CodeClass != "Endogenous" | 
+        rowsKeep <- which(!grepl("endogenous", dat$dict$CodeClass, 
+                                 ignore.case = TRUE) | 
                             rowMeans(t(t(dat$exprs) > bg.threshold)) >= 
                             proportionReq)
     }

@@ -27,7 +27,7 @@
 makeNanoStringSetFromEset <- function(eset, designs = NULL) {
   
     # Order positive control data (required for NanoStringDiff)
-    pos.unordered <- eset[fData(eset)$CodeClass == "Positive",]
+    pos.unordered <- eset[grep("positive", fData(eset)$CodeClass, ignore.case = TRUE),]
     pos.ordered <- exprs(pos.unordered)[order(fData(pos.unordered)$Name),]
     
     # Look for group info
@@ -44,14 +44,14 @@ makeNanoStringSetFromEset <- function(eset, designs = NULL) {
     
     # Build NanoStringSet
     nsSet <- NanoStringDiff::createNanoStringSet(
-        endogenous = exprs(eset)[fData(eset)$CodeClass == "Endogenous",],
+        endogenous = exprs(eset)[grep("endogenous", fData(eset)$CodeClass, ignore.case = TRUE),],
         positiveControl = pos.ordered,
-        negativeControl = exprs(eset)[fData(eset)$CodeClass == "Negative",],
+        negativeControl = exprs(eset)[grep("negative", fData(eset)$CodeClass, ignore.case = TRUE),],
         housekeepingControl = exprs(eset)[
-            fData(eset)$CodeClass == "Housekeeping",],
+          grep("housekeeping", fData(eset)$CodeClass, ignore.case = TRUE),],
         designs = designs)
     
-    fData(nsSet) <- fData(eset)[fData(eset)$CodeClass == "Endogenous",]
+    fData(nsSet) <- fData(eset)[grep("endogenous", fData(eset)$CodeClass, ignore.case = TRUE),]
     rownames(nsSet) <- fData(nsSet)$Name
     
     return(nsSet)

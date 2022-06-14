@@ -165,6 +165,8 @@ processNanostringData <- function(nsFiles,
         # Extract from nsFiles, if zipped
         if (file.extension %in% c(".zip", ".ZIP")){
             nsFiles <- unzip_dirs(nsFiles)
+        } else if (file.extension %in% c(".tar", ".TAR")){
+          nsFiles <- untar_dirs(nsFiles)
         }
         
         # Get filenames (combines files from multiple directories if necessary)

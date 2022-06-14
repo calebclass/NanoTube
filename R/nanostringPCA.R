@@ -41,9 +41,9 @@ nanostringPCA <- function(ns, pc1 = 1, pc2 = 2,
     PC1 <- PC2 <- group <- NULL
     
     if (is(ns, "list")) {
-        pca.dat <- ns$exprs[ns$dict$CodeClass == "Endogenous",]
+        pca.dat <- ns$exprs[grep("endogenous", ns$dict$CodeClass, ignore.case = TRUE),]
     } else {
-        pca.dat <- exprs(ns)[fData(ns)$CodeClass == "Endogenous",]
+        pca.dat <- exprs(ns)[grep("endogenous", fData(ns)$CodeClass, ignore.case = TRUE),]
     }
     
     if (exclude.zeros) pca.dat <- pca.dat[rowSums(pca.dat == 0) == 0,]

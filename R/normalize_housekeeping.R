@@ -34,7 +34,7 @@
 normalize_housekeeping <- function(dat, genes = NULL, logfile = "") {
 
     if (is.null(genes)) genes <- 
-        dat$dict$Name[dat$dict$CodeClass == "Housekeeping"]
+        dat$dict$Name[grep("housekeeping", dat$dict$CodeClass, ignore.case = TRUE)]
   
     exprs.dat <- dat$exprs
   
@@ -50,8 +50,8 @@ normalize_housekeeping <- function(dat, genes = NULL, logfile = "") {
     }
   
     scale.factor <- laneGM / mean(laneGM)
-    exprs.dat[dat$dict$CodeClass == "Endogenous",] <-
-      sweep(exprs.dat[dat$dict$CodeClass == "Endogenous",], 
+    exprs.dat[grep("endogenous", dat$dict$CodeClass, ignore.case=TRUE),] <-
+      sweep(exprs.dat[grep("endogenous", dat$dict$CodeClass, ignore.case=TRUE),], 
             2, scale.factor, '/')
     dat$exprs <- exprs.dat
     dat$hk.scalefactors <- scale.factor

@@ -48,8 +48,10 @@
 runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
                              design = NULL) {
 
-    dat.limma <- dat[fData(dat)$CodeClass == "Endogenous",]
-    rownames(dat.limma) <- fData(dat)$Name[fData(dat)$CodeClass == "Endogenous"]
+    dat.limma <- dat[grep("endogenous", fData(dat)$CodeClass, ignore.case = TRUE),]
+    rownames(dat.limma) <- fData(dat)$Name[grep("endogenous", 
+                                                fData(dat)$CodeClass, 
+                                                ignore.case = TRUE)]
     
     # If RUV normalization was used, data are already log-transformed.
     if (dat$normalization[1] != "RUV") exprs(dat.limma) <- 

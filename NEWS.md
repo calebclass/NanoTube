@@ -1,3 +1,7 @@
+## Changes in NanoTube 1.3.5
+- Corrected a bug that caused NanoTube not to recognize reporters labeled as 
+  "Endogenous1", "Endogenous2", etc. as Endogenous.
+
 ## Changes in NanoTube 1.1.2
 - When processing a folder containing RCC files, processNanostringData() 
   now ignores filenames not ending in "RCC" (case-insensitive).
