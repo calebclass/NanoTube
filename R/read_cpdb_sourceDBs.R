@@ -2,6 +2,8 @@
 #'
 #' Read in a .tab file from the Consensus Pathway Database (CPDB), and
 #' identify the source databases present.
+#' 
+#' @export
 #'
 #' @param file The filename
 #'

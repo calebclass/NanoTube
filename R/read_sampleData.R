@@ -71,9 +71,9 @@ read_sampleData <- function(dat, file.name,
             dat$samples <- sampDat
             rownames(dat$samples) <- colnames(dat$exprs)
             
-            warning("\nSample names in the two files don't match. NanoTube is 
-                assuming that samples are in the same order. Please confirm 
-                with your data.\n")
+            warning("\nSample names in the two files don't match. NanoTube is\n", 
+                "assuming that samples are in the same order. Please confirm\n", 
+                "with your data.\n")
         }
     } else {
         stop("\nConflict: There is expression data from ", ncol(dat$exprs), 

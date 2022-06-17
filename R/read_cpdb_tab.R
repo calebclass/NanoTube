@@ -1,6 +1,8 @@
 #' Read .tab file.
 #'
 #' Read in a .tab file from the Consensus Pathway Database (CPDB)
+#' 
+#' @export
 #'
 #' @param file The filename
 #' @param sourceDB The source database to use. If NULL (default), retains

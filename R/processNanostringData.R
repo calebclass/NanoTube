@@ -172,12 +172,12 @@ processNanostringData <- function(nsFiles,
         # Get filenames (combines files from multiple directories if necessary)
         fileNames <- unlist(lapply(nsFiles, list.files, full.names = TRUE))
         
-        # Retain only fileNames ending in "RCC"
+        # Retain only fileNames ending in "RCC" or ".gz"
         # ('tolower' function makes it case-insensitive)
         fileNames <- fileNames[
           tolower(substr(fileNames, 
                          start = nchar(fileNames)-2, 
-                         stop = nchar(fileNames))) == "rcc"]
+                         stop = nchar(fileNames))) %in% c("rcc", ".gz")]
         
         cat("\nReading in .RCC files......", file=logfile, append=TRUE)
         

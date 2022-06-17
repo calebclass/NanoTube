@@ -19,6 +19,10 @@
 
 read_rcc <- function(file) {
 
+    if (substr(file, start = nchar(file)-2, stop = nchar(file)) == ".gz") {
+        file <- gzfile(file)
+    }
+    
     dat.csv <- read.csv(file,
                         row.names = NULL, col.names = seq_len(4), 
                         header = FALSE, stringsAsFactors = FALSE)

@@ -1,3 +1,8 @@
+## Changes in NanoTube 1.3.6
+- NanoTube can now process zipped and tarred (.zip or .tar) directories, as
+  well as gzipped (.gz) RCC files, such as those downloaded from GEO in many
+  cases.
+
 ## Changes in NanoTube 1.3.5
 - Corrected a bug that caused NanoTube not to recognize reporters labeled as 
   "Endogenous1", "Endogenous2", etc. as Endogenous.
