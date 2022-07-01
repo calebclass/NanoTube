@@ -1,4 +1,7 @@
 # NanoTube
+
+<a href="https://www.bioconductor.org/packages/NanoTube/">The NanoTube is on Bioconductor!</a>
+
 NanoTube includes functions for the processing, quality control, 
 analysis, and visualization of NanoString nCounter data. Analysis functions
 include differential analysis and gene set analysis methods, as well as
