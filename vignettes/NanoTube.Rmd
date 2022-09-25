@@ -16,6 +16,8 @@ knitr::opts_chunk$set(tidy = FALSE,
                       dev = "png",
                       message = FALSE, error = FALSE, warning = TRUE,
                       fig.height = 4, fig.width = 4)
+
+library(kableExtra)
 ```
 
 
@@ -92,9 +94,15 @@ for easier Viewing.
 limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
 limmaStats <- as.data.frame(limmaStats)
 
+# Rounding for clarity
+limmaTab <- head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
+                      decreasing = FALSE), 1:4])
+limmaTab[,1] <- format(limmaTab[,1], digits = 2, nsmall = 1)
+limmaTab[,3] <- format(limmaTab[,3], digits = 1, scientific = TRUE)
+limmaTab[,4] <- format(limmaTab[,4], digits = 1, nsmall = 1)
+
 # Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
-knitr::kable(head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
-                      decreasing = FALSE), 1:4]), 
+knitr::kable(head(limmaTab), 
       row.names = TRUE, format = "html", align = "c")
 
 
@@ -129,10 +137,13 @@ names(fgseaResults)
 
 ```{r BasicTab}
 
-knitr::kable(head(fgseaResults$Autoimmune.retinopathy[
+fgseaTab <- head(fgseaResults$Autoimmune.retinopathy[
              order(fgseaResults$Autoimmune.retinopathy$pval, 
-                   decreasing = FALSE),]), 
-      row.names = TRUE, format = "html", align = "c")
+                   decreasing = FALSE),])
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
+
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 
 ```
@@ -312,7 +323,7 @@ these recommendations should be investigated further.
 posQC <- positiveQC(dat)
 
 knitr::kable(head(posQC$tab), 
-      row.names = FALSE, format = "html", align = "c", digits = 3)
+      row.names = FALSE, format = "html", align = "c", digits = 2)
 
 ```
 
@@ -355,7 +366,7 @@ processed data. Manufacturer recommends additional caution for samples with
 scale factors outside the range of 0.1-10.
 
 ```{r qcHK1}
-head(dat$hk.scalefactors)
+signif(head(dat$hk.scalefactors), digits = 2)
 ```
 
 # Data Analysis
@@ -395,7 +406,7 @@ pigmentosa vs. None.  This function will return standard Limma analysis results.
 
 limmaResults <- runLimmaAnalysis(dat, base.group = "None")
 
-head(limmaResults$coefficients)
+head(signif(limmaResults$coefficients, digits = 2))
 
 ```
 
@@ -549,11 +560,13 @@ potential pathway of interest.
 
 ```{r gsea2}
 
-fgsea.ordered <- fgseaResults$Autoimmune.retinopathy[
-    order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),]
+fgseaTab <- head(fgseaResults$Autoimmune.retinopathy[
+             order(fgseaResults$Autoimmune.retinopathy$pval, 
+                   decreasing = FALSE),])
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
 
-knitr::kable(fgsea.ordered[1:5,], 
-      row.names = TRUE, format = "html", align = "c")
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 
 ```
@@ -619,8 +632,11 @@ fgsea.grouped <- groupFGSEA(fgseaResults$Autoimmune.retinopathy,
                                    join.threshold = 0.5,
                                    dist.method = "binary")
 
+fgseaTab <- head(fgsea.grouped)
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
 
-knitr::kable(fgsea.grouped, digits = 4, row.names = FALSE, align = "c")
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 ```
 
@@ -664,7 +680,11 @@ results.AR <- groupedGSEAtoStackedReport(
     de.fit = limmaResults)
 
 # View Cluster 1 gene statistics
-results.AR[results.AR$Cluster == 1, 1:6]
+resultsTab <- results.AR[results.AR$Cluster == 1, 1:6]
+resultsTab[,2:6] <- lapply(resultsTab[,2:6], format, digits = 1, nsmall = 1)
+
+knitr::kable(resultsTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 ```
 
