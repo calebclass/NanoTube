@@ -1,9 +1,9 @@
 #' Housekeeping gene normalization
 #'
-#' Scale endogenous genes by the geometric mean of housekeeping genes. This 
-#' should be conducted after positive control normalization and background 
-#' correction.  This step is conducted within processNanostringData, when 
-#' normalization is set to "nCounter".
+#' Scale endogenous and housekeeping genes by the geometric mean of 
+#' housekeeping genes. This should be conducted after positive control 
+#' normalization and background correction.  This step is conducted 
+#' within processNanostringData, when normalization is set to "nCounter".
 #'
 #' @export
 #' 
@@ -50,8 +50,8 @@ normalize_housekeeping <- function(dat, genes = NULL, logfile = "") {
     }
   
     scale.factor <- laneGM / mean(laneGM)
-    exprs.dat[grep("endogenous", dat$dict$CodeClass, ignore.case=TRUE),] <-
-      sweep(exprs.dat[grep("endogenous", dat$dict$CodeClass, ignore.case=TRUE),], 
+    exprs.dat[grep("endogenous|housekeep", dat$dict$CodeClass, ignore.case=TRUE),] <-
+      sweep(exprs.dat[grep("endogenous|housekeep", dat$dict$CodeClass, ignore.case=TRUE),], 
             2, scale.factor, '/')
     dat$exprs <- exprs.dat
     dat$hk.scalefactors <- scale.factor
