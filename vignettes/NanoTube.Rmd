@@ -527,6 +527,40 @@ hist(limmaResults2$p.value[,"batch"], main = "p-values of Batch terms")
 
 ```
 
+Alternatively, a design matrix can be provided as 'sampleData' in the 
+`processNanostringData` step.
+
+```{r desInput}
+
+sample_info_design <- sample_info <- system.file("extdata", 
+                           "GSE117751_design_matrix.csv", 
+                           package = "NanoTube")
+
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_info_design, 
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01)
+
+head(pData(dat))
+
+```
+
+We can then use this pData object as our design matrix in limma analysis. Note that 
+`processNanostringData` adds an additional column at the beginning and the end,
+so these should be removed for limma analysis. Based on this analysis, many
+genes appear to be correlated with patient age.
+
+```{r limma3}
+
+# Analyze data
+limmaResults3 <- runLimmaAnalysis(dat, design = pData(dat)[,2:(ncol(pData(dat))-1)])
+
+
+hist(limmaResults3$p.value[,"Age"], main = "p-values for Age term")
+
+```
+
 Results of Limma analyses can be visualized using simple volcano plots.
 
 ```{r volcano}
