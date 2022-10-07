@@ -57,7 +57,8 @@
 #' @param output.format If "list", will return the normalized (optional) and raw
 #' expression data, as well as various QC and relevant information tables. If 
 #' "ExpressionSet" (default), will convert to an n*p ExpressionSet, with n rows
-#' representing genes and p columns representing samples.
+#' representing genes and p columns representing samples. ExpressionSet objects
+#' are required for some steps, such as runLimmaAnalysis.
 #' @param logfile a filename for the logfile (optional). If blank, will print 
 #' warnings to screen.
 #'

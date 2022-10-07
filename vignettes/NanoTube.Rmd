@@ -528,21 +528,22 @@ hist(limmaResults2$p.value[,"batch"], main = "p-values of Batch terms")
 ```
 
 Alternatively, a design matrix can be provided as 'sampleData' in the 
-`processNanostringData` step.
+`processNanostringData` step. This one contains columns for the Intercept,
+the two diagnoses, and patient Age.
 
 ```{r desInput}
 
-sample_info_design <- sample_info <- system.file("extdata", 
+sample_info_design <- system.file("extdata", 
                            "GSE117751_design_matrix.csv", 
                            package = "NanoTube")
 
-dat <- processNanostringData(example_data, 
+datDes <- processNanostringData(example_data, 
                              sampleTab = sample_info_design, 
                              normalization = "nSolver", 
                              bgType = "t.test", 
                              bgPVal = 0.01)
 
-head(pData(dat))
+head(pData(datDes))
 
 ```
 
@@ -554,7 +555,8 @@ genes appear to be correlated with patient age.
 ```{r limma3}
 
 # Analyze data
-limmaResults3 <- runLimmaAnalysis(dat, design = pData(dat)[,2:(ncol(pData(dat))-1)])
+limmaResults3 <- runLimmaAnalysis(datDes, 
+                                  design = pData(datDes)[,2:(ncol(pData(datDes))-1)])
 
 
 hist(limmaResults3$p.value[,"Age"], main = "p-values for Age term")
