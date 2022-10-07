@@ -195,12 +195,15 @@ dat2 <- processNanostringData(nsFile = csv_data,
 
 ```
 ## Normalization
-This package provides three options for data normalization: a standard set of 
+This package provides four options for data normalization: a standard set of 
 steps recommended by NanoString for nCounter data, which normalizes the data to 
 different sets of control genes [@nanostring_technologies_ncounter_2011]; the 
-RUV (Remove Unwanted Variance) method [@gagnon-bartsch_ruv_2019]; or no 
-normalization.
+RUV-III (Remove Unwanted Variance III) method, which normalizes the data using 
+technical replicates [@gagnon-bartsch_ruv_2019]; the RUVg method, which 
+normalizes the data using specified control genes [@bhattacharya_approach_2020]; 
+or no normalization.
 
+### nSolver Normalization
 To normalize using standard nSolver steps, set `normalization` to "nSolver". 
 The three normalization steps under this method are:
 
@@ -234,7 +237,7 @@ If not provided, genes marked as "Housekeeping" in the RCC files will be used.
 Alternatively, this can be skipped using `skip.housekeeping = TRUE`.
 
 
-```{r norm1}
+```{r norm1, warning=FALSE}
 
 # Set housekeeping genes manually (optional)
 hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
@@ -248,19 +251,108 @@ dat <- processNanostringData(nsFiles = example_data,
 
 ```
 
+```{r norm2, warning=FALSE}
+
+# Automatically detect housekeeping genes
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01)
+
+```
+
+### RUV-III Normalization
+
+The RUV-III method normalizes data based on technical replicates. Replicate IDs
+must be included in the sample information table ('sampleTab' in `processNanostringData`),
+and the column containing these IDs is specified using the 'replicateCol' option.
+Additionally, the number of dimensions of unwanted data can be specified using
+the 'n.unwanted' option.  If NULL (the default), the maximum possible number of
+factors will be identified and used.  More information can be found in 
+[@gagnon-bartsch_ruv_2019]. 
+
+```{r normRUVIII, warning = FALSE}
+
+# This sample data table contains fake replicate identifiers (for use in example).
+sample_info_reps <- system.file("extdata", 
+                           "GSE117751_sample_data_replicates.csv", 
+                           package = "NanoTube")
+
+
+datRUVIII <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info_reps, 
+                             replicateCol = "Replicate_ID",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVIII",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1)
+
+```
+
+RUV-III can also be used without technical replicates, by generating PRPS 
+(pseudo-replicates of pseudo-samples). This is described in [@molania_removing_2022],
+and it was demonstrated to provide superior normalization vs. other RNA-Seq
+normalization methods for TCGA RNA-Seq data sets. Software and vignettes for 
+accomplishing this normalization can be found at 
+<https://github.com/RMolania/TCGA_PanCancer_UnwantedVariation>.
+
+### RUVg Normalization
+
+The RUVg method normalizes data based on housekeeping genes. These can be manually
+specified using the 'housekeping' option in `processNanostringData`, or they can
+be automatically interpreted based on the CodeClass column of the RCC files. By
+default, RUVg will remove one dimension of unwanted data, but this can be adjusted
+using the 'n.unwanted' option. Additionally, the 'RUVg.drop' option can be used
+to drop some number of singular values. This defaults to zero, but it can be adjusted
+if the first singular value(s) identify the effect of interest. See 
+[@bhattacharya_approach_2020] for more details.
+
+```{r normRUVg, warning = FALSE}
+
+hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
+
+datRUVg <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVg",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1, RUVg.drop = 0,
+                             housekeeping = hk.genes)
+
+```
+
+```{r normRUVg2, warning = FALSE}
+
+# Housekeeping genes are automatically identified
+datRUVg <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVg",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1, RUVg.drop = 0)
+
+```
+
+
 ## Assessing Normalization Performance
 ### RLE Plots
-Relative Log Expression (RLE) plots have been demonstrated as effective visualizations to assess whether NanoString data normalization has been successful [@gandolfo_rle_2018]. This method centers the log-expression of each gene to the median log-expression of that gene. The RUV implementation `ruv_rle` can be used to generate this plot, regardless of what normalization method was used [@gagnon-bartsch_ruv_2019]. 
+Relative Log Expression (RLE) plots have been demonstrated as effective visualizations to assess whether NanoString data normalization has been successful [@gandolfo_rle_2018]. This method centers the log-expression of each gene to the median log-expression of that gene. The RUV implementation `ruv_rle` can be used to generate this plot, regardless of what normalization method was used [@gagnon-bartsch_ruv_2019].  
+
+Note that for this function, you need to log-transform and transpose the 
+expression data matrix.  You'll probably want to set the y-axis limits as well,
+using 'ylim'.
 
 ```{r rle, fig.width = 6}
 
-# Note that for this function, you need to log-transform 
-# and transpose the expression data matrix.  
-# Here's how to do it with the NanoString ExpressionSet:
+# Here's how to do it with the NanoString ExpressionSet. If your data set is in
+# list form, you would use dat$exprs instead of exprs(dat).
 
 ruv::ruv_rle(t(log2(exprs(dat))), ylim = c(-2, 2))
 
 ```
+
 
 ### Principal components analysis
 
@@ -622,7 +714,11 @@ pheatmap::pheatmap(t(leading.edge$Autoimmune.retinopathy),
 
 You can further cluster pathways by their leading edge genes. This is 
 particularly useful when you have lots (tens to hundreds) of significantly 
-enriched pathways, as you can prioritize certain ones.
+enriched pathways, as you can prioritize certain ones or potentially identify
+overarching patterns of pathway enrichment. We recommend clustering pathways by
+the binary distance (also known as the Jaccard index), which for two gene sets
+will be the number of genes shared by the gene sets, divided by the total number
+of genes in either of the two gene sets.
 
 ```{r gsea6}
 
