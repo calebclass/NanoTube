@@ -22,8 +22,9 @@
 #' performance in the "RUVIII" method; otherwise they are averaged.
 #' @param normalization If "nSolver" (default), continues with background, 
 #' positive control, and housekeeping control normalization steps to return
-#' a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
-#' controls, housekeeping genes and technical replicates. If "none", returns a 
+#' a NanoStringSet of normalized data. If "RUVIII", runs RUV normalization using 
+#' controls, housekeeping genes and technical replicates. If "RUVg", runs RUV 
+#' normalization using housekeeping genes. If "none", returns a 
 #' NanoStringSet with the raw counts, suitable for running NanoStringDiff.
 #' @param bgType (Only if normalization is not "none") Type of background 
 #' correction to use: "threshold" sets a threshold for N standard deviations 
@@ -112,7 +113,7 @@ processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, 
                                   idCol = NULL, groupCol = NULL, 
                                   replicateCol = NULL,
-                                  normalization = c("nSolver", "RUVIII", "none"),
+                                  normalization = c("nSolver", "RUVIII", "RUVg", "none"),
                                   bgType = c("threshold", "t.test", "none"),
                                   bgThreshold = 2, bgProportion = 0.5, 
                                   bgPVal = 0.001, bgSubtract = FALSE,
@@ -312,7 +313,7 @@ processNanostringData <- function(nsFiles,
                  "\n", file=logfile, append=TRUE))
       }
 
-      #if (is.null(n.unwanted)) n.unwanted <- 1
+      if (is.null(n.unwanted)) n.unwanted <- 1
     
       dat$exprs <- RUVSeq::RUVg(dat$exprs, housekeeping, 
                                 k = n.unwanted, drop = RUVg.drop)$normalizedCounts
