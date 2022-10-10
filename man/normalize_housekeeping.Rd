@@ -20,10 +20,10 @@ NanoString data, with expression matrix now normalized by
 housekeeping gene expression.
 }
 \description{
-Scale endogenous genes by the geometric mean of housekeeping genes. This 
-should be conducted after positive control normalization and background 
-correction.  This step is conducted within processNanostringData, when 
-normalization is set to "nCounter".
+Scale endogenous and housekeeping genes by the geometric mean of 
+housekeeping genes. This should be conducted after positive control 
+normalization and background correction.  This step is conducted 
+within processNanostringData, when normalization is set to "nCounter".
 }
 \examples{
 example_data <- system.file("extdata", "GSE117751_RAW", package = "NanoTube")
