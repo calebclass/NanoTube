@@ -273,13 +273,17 @@ the 'n.unwanted' option.  If NULL (the default), the maximum possible number of
 factors will be identified and used.  More information can be found in 
 [@gagnon-bartsch_ruv_2019]. 
 
+Note that RUVIII returns log-transformed counts, in contrast to nSolver and
+RUVg normalization. This difference is accounted for in subsequent NanoTube 
+analysis steps, but it should be considered by the user when using the 
+normalized data for other purposes.
+
 ```{r normRUVIII, warning = FALSE}
 
 # This sample data table contains fake replicate identifiers (for use in example).
 sample_info_reps <- system.file("extdata", 
                            "GSE117751_sample_data_replicates.csv", 
                            package = "NanoTube")
-
 
 datRUVIII <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info_reps, 

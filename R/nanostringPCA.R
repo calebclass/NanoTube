@@ -50,7 +50,7 @@ nanostringPCA <- function(ns, pc1 = 1, pc2 = 2,
     
     # If RUV normalization was used, data are already log-transformed.
     # Otherwise, log-transform with a pseudocount of 0.5
-    if (ns$normalization[1] != "RUV") pca.dat <- log2(pca.dat + 0.5)
+    if (ns$normalization[1] != "RUVIII") pca.dat <- log2(pca.dat + 0.5)
     
     pca <- prcomp(t(pca.dat),
                   center = TRUE, scale = TRUE)

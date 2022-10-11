@@ -54,7 +54,7 @@ runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
                                                 ignore.case = TRUE)]
     
     # If RUV normalization was used, data are already log-transformed.
-    if (dat$normalization[1] != "RUV") exprs(dat.limma) <- 
+    if (dat$normalization[1] != "RUVIII") exprs(dat.limma) <- 
         log2(exprs(dat.limma) + 0.5)
   
     
