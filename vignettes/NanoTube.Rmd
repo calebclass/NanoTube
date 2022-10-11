@@ -301,7 +301,7 @@ accomplishing this normalization can be found at
 ### RUVg Normalization
 
 The RUVg method normalizes data based on housekeeping genes. These can be manually
-specified using the 'housekeping' option in `processNanostringData`, or they can
+specified using the 'housekeeping' option in `processNanostringData`, or they can
 be automatically interpreted based on the CodeClass column of the RCC files. By
 default, RUVg will remove one dimension of unwanted data, but this can be adjusted
 using the 'n.unwanted' option. Additionally, the 'RUVg.drop' option can be used
