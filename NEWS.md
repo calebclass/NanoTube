@@ -1,3 +1,6 @@
+## Changes in NanoTube 1.5.1
+- We're published in Bioinformatics! CITATION file updated.
+
 ## Changes in NanoTube 1.3.7
 - In addition to ruv::RUVIII, the RUVSeq::RUVg method can now be used for data
   normalization. Options have also been added to allow tuning of the parameters
