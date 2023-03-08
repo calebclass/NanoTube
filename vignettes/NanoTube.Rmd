@@ -57,10 +57,11 @@ are provided in the "Processing Data" section. This function also merges the
 expression data with the sample characteristics table (if provided), and 
 outputs as an Biobase ExpressionSet.
 
-```{r Basic2, warning = FALSE}
+```{r Basic2}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, 
+                             sampleTab = sample_info,
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis")
 
 ```
@@ -158,17 +159,41 @@ by imported by NanoTube. Two functions are provided in this package:
 `read_rcc`, which reads in a single RCC file, and `read_merge_rcc` which reads
 in a vector of RCC file names and combines the data. 
 
-`processNanostringData` includes the reading of these data files, in addition 
-to optional quality control and normalization steps. These are described in the
-'Quality Control' and 'Normalization' sections. Normalization can be skipped
-in this function using `normalization = "none"`. The housekeeping normalization
-step can be skipped (retaining positive control normalization) using
-`skip.housekeeping = TRUE`.
+`processNanostringData` includes the reading of these data files contained in `nsFiles`, 
+merging with a sample meta-data table `sampleTab`, and other steps described below. 
+Ideally, your sampleTab will have a column which contains the names of each respective
+RCC file so the expression data and meta-data can be matched properly: this is 
+supplied to `processNanostringData` using the `idCol` option, which should be the 
+name of the column with the RCC filenames. If this is not provided, the function will
+merge your meta-data table in its original order with the RCC files in alphabetical order, and a
+warning will be returned advising you to check that the merge was completed correctly (see examples).
+
+`processNanostringData` also conducts optional quality control and normalization 
+steps. These are described in the 'Quality Control' and 'Normalization' sections. 
+Normalization can be skipped in this function using `normalization = "none"`. 
+The housekeeping normalization step can be skipped (retaining positive control 
+normalization) using `skip.housekeeping = TRUE`.
 
 ```{r proc1}
 
+# Without supplying idCol, a warning is returned.
+# The CSV file contains samples in the proper order, so this is technically ok.
 dat <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01,
+                             skip.housekeeping = FALSE,
+                             output.format = "ExpressionSet")
+
+```
+
+```{r proc1idCol}
+
+# With idCol
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
@@ -237,13 +262,14 @@ If not provided, genes marked as "Housekeeping" in the RCC files will be used.
 Alternatively, this can be skipped using `skip.housekeeping = TRUE`.
 
 
-```{r norm1, warning=FALSE}
+```{r norm1}
 
 # Set housekeeping genes manually (optional)
 hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
 
 dat <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
@@ -251,12 +277,13 @@ dat <- processNanostringData(nsFiles = example_data,
 
 ```
 
-```{r norm2, warning=FALSE}
+```{r norm2}
 
 # Automatically detect housekeeping genes
 
 dat <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01)
@@ -278,7 +305,7 @@ RUVg normalization. This difference is accounted for in subsequent NanoTube
 analysis steps, but it should be considered by the user when using the 
 normalized data for other purposes.
 
-```{r normRUVIII, warning = FALSE}
+```{r normRUVIII}
 
 # This sample data table contains fake replicate identifiers (for use in example).
 sample_info_reps <- system.file("extdata", 
@@ -287,6 +314,7 @@ sample_info_reps <- system.file("extdata",
 
 datRUVIII <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info_reps, 
+                             idCol = "RCC_Name",
                              replicateCol = "Replicate_ID",
                              groupCol = "Sample_Diagnosis",
                              normalization = "RUVIII",
@@ -313,12 +341,13 @@ to drop some number of singular values. This defaults to zero, but it can be adj
 if the first singular value(s) identify the effect of interest. See 
 [@bhattacharya_approach_2020] for more details.
 
-```{r normRUVg, warning = FALSE}
+```{r normRUVg}
 
 hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
 
 datRUVg <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "RUVg",
                              bgType = "t.test", bgPVal = 0.01,
@@ -327,11 +356,12 @@ datRUVg <- processNanostringData(nsFiles = example_data,
 
 ```
 
-```{r normRUVg2, warning = FALSE}
+```{r normRUVg2}
 
 # Housekeeping genes are automatically identified
 datRUVg <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "RUVg",
                              bgType = "t.test", bgPVal = 0.01,
@@ -364,10 +394,11 @@ PCA can be conducted after processing and normalization. We provide a standard
 plot using `ggplot2` or an interactive plot using `plotly` (use the 
 `interactive.plot` option).
 
-```{r pca, warning = FALSE, fig.width = 6}
+```{r pca, fig.width = 6}
 
 dat <- processNanostringData(example_data, 
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver", 
                              bgType = "t.test", 
@@ -381,7 +412,7 @@ nanostringPCA(dat, interactive.plot = TRUE)$plt
 We default to plotting the first two principal components, but you can also
 choose others.
 
-```{r pca2, warning = FALSE, fig.width = 6}
+```{r pca2, fig.width = 6}
 
 nanostringPCA(dat, pc1=3, pc2=4, interactive.plot = FALSE)$plt
 
@@ -392,9 +423,11 @@ NanoTube provides the quality control metrics recommended for NanoString
 nCounter data. The raw NanoString data can be loaded for QC using the 
 `output.format = "list"` option of `processNanostringData`.
 
-```{r qc1, warning = FALSE}
+```{r qc1}
 
-dat <- processNanostringData(example_data, output.format = "list",
+dat <- processNanostringData(example_data, 
+                             idCol = "RCC_Name",
+                             output.format = "list",
                              includeQC = TRUE)
 
 ```
@@ -482,6 +515,7 @@ ExpressionSet will already contain the sample groups.
 
 dat <- processNanostringData(example_data, 
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver", 
                              bgType = "t.test", 
@@ -543,6 +577,7 @@ sample_info_design <- system.file("extdata",
 
 datDes <- processNanostringData(example_data, 
                              sampleTab = sample_info_design, 
+                             idCol = "RCC_Name",
                              normalization = "nSolver", 
                              bgType = "t.test", 
                              bgPVal = 0.01)
@@ -617,6 +652,7 @@ unnormalized, data to a `NanoStringSet` for use with NanoStringDiff.
 # Remember to set normalization = "none"
 datNoNorm <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "none")
 
@@ -810,7 +846,7 @@ for one comparison.
 
 ```{r exportGSEA2}
 
-results.AR <- groupedGSEAtoStackedReport(
+results.AR <- groupedGSEAtoStackedReport( 
     fgsea.grouped,
     leadingEdge = leading.edge$Autoimmune.retinopathy,
     de.fit = limmaResults)
