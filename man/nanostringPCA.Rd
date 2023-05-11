@@ -9,7 +9,8 @@ nanostringPCA(
   pc1 = 1,
   pc2 = 2,
   interactive.plot = FALSE,
-  exclude.zeros = TRUE
+  exclude.zeros = TRUE,
+  codeclass.retain = "endogenous"
 )
 }
 \arguments{
@@ -24,6 +25,12 @@ ggplot2 is used)}
 
 \item{exclude.zeros}{Exclude genes that are not detected in all samples
 (default TRUE)}
+
+\item{codeclass.retain}{The CodeClasses to retain for principal components 
+analysis.Generally we're interested in endogenous genes, so we keep 
+"endogenous" only by default. Others can be included by entering a character 
+vector for this option. Alternatively, all targets can be retained by 
+setting this option to ".".}
 }
 \value{
 A list containing:

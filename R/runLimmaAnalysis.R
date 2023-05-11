@@ -14,6 +14,11 @@
 #' be one of the levels in 'groups'). Will use the first group if NULL.
 #' @param design a design matrix for Limma analysis (default NULL, will do 
 #' analysis based on provided 'group' data)
+#' @param codeclass.retain The CodeClasses to retain for Limma analysis. 
+#' Generally we're interested in endogenous genes, so we keep "endogenous" 
+#' only by default. Others can be included by entering a character vector for 
+#' this option (see limmaResults3 example). Alternatively, all targets can be 
+#' retained by setting this option to ".". 
 #' @return The fit Limma object
 #' 
 #' @examples 
@@ -42,14 +47,24 @@
 #' 
 #' # Analyze data
 #' limmaResults2 <- runLimmaAnalysis(dat, design = design)
+#' 
+#' # Run Limma analysis including endogenous *and* housekeeping genes.
+#' limmaResults3 <- runLimmaAnalysis(dat, design = design,
+#'                      codeclass.retain = c("endogenous", "housekeeping"))
 
 
 
 runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
-                             design = NULL) {
-
-    dat.limma <- dat[grep("endogenous", fData(dat)$CodeClass, ignore.case = TRUE),]
-    rownames(dat.limma) <- fData(dat)$Name[grep("endogenous", 
+                             design = NULL,
+                             codeclass.retain = "endogenous") {
+  
+    # Convert codeclass.retain option to format that can be used by grep.
+    codeclass.grep <- paste(codeclass.retain, collapse = "|")
+    
+    # Retain only desired CodeClass/CodeClasses.
+    dat.limma <- dat[grep(codeclass.grep, fData(dat)$CodeClass, 
+                          ignore.case = TRUE),]
+    rownames(dat.limma) <- fData(dat)$Name[grep(codeclass.grep, 
                                                 fData(dat)$CodeClass, 
                                                 ignore.case = TRUE)]
     

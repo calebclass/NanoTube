@@ -12,6 +12,11 @@
 #' ggplot2 is used)
 #' @param exclude.zeros Exclude genes that are not detected in all samples
 #' (default TRUE)
+#' @param codeclass.retain The CodeClasses to retain for principal components 
+#' analysis.Generally we're interested in endogenous genes, so we keep 
+#' "endogenous" only by default. Others can be included by entering a character 
+#' vector for this option. Alternatively, all targets can be retained by 
+#' setting this option to ".". 
 #' @return A list containing:
 #' \item{pca}{The PCA object}
 #' \item{plt}{The PCA plot}
@@ -35,15 +40,20 @@
 #' nanostringPCA(dat, pc1 = 3, pc2 = 4, interactive.plot = FALSE)$plt
 
 nanostringPCA <- function(ns, pc1 = 1, pc2 = 2, 
-                          interactive.plot = FALSE, exclude.zeros = TRUE) {
+                          interactive.plot = FALSE, 
+                          exclude.zeros = TRUE,
+                          codeclass.retain = "endogenous") {
   
     # Bind local variables
     PC1 <- PC2 <- group <- NULL
     
+    # Convert codeclass.retain option to format that can be used by grep.
+    codeclass.grep <- paste(codeclass.retain, collapse = "|")
+    
     if (is(ns, "list")) {
-        pca.dat <- ns$exprs[grep("endogenous", ns$dict$CodeClass, ignore.case = TRUE),]
+        pca.dat <- ns$exprs[grep(codeclass.grep, ns$dict$CodeClass, ignore.case = TRUE),]
     } else {
-        pca.dat <- exprs(ns)[grep("endogenous", fData(ns)$CodeClass, ignore.case = TRUE),]
+        pca.dat <- exprs(ns)[grep(codeclass.grep, fData(ns)$CodeClass, ignore.case = TRUE),]
     }
     
     if (exclude.zeros) pca.dat <- pca.dat[rowSums(pca.dat == 0) == 0,]

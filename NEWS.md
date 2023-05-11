@@ -1,3 +1,8 @@
+## Changes in NanoTube 1.7.1
+- The codeclass.retain option now allows runLimmaAnalysis() to be run using
+  a CodeClass/CodeClasses specified by the user, instead of automatically 
+  removing non-endogenous genes. See help(runLimmaAnalysis) for details.
+
 ## Changes in NanoTube 1.5.1
 - We're published in Bioinformatics! CITATION file updated.
 
