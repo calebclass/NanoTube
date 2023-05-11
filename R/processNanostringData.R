@@ -9,7 +9,7 @@
 #'
 #' @param nsFiles file path (or zip file) containing the .rcc files, or multiple
 #' directories in a character vector, or a single text/csv file containing the 
-#' combined counts.
+#' combined counts, or .rcc files in a character vector.
 #' @param sampleTab .txt (tab-delimited) or .csv (comma-delimited) file 
 #' containing sample data table (optional, default NULL)
 #' @param idCol the column name of the sample identifiers in the sample table,
@@ -166,6 +166,13 @@ processNanostringData <- function(nsFiles,
         
         # Remove periods or spaces from dictionary colnames
         colnames(dat$dict) <- gsub("\\.| ", "", colnames(dat$dict))
+      
+    } else if (file.extension %in% c(".RCC", ".rcc")) {
+      
+        fileNames <- nsFiles[ grep("\\.rcc$", tolower(nsFiles)) ]
+        cat("\nReading in .RCC files......", file = logfile, 
+            append = TRUE)
+        dat <- read_merge_rcc(fileNames, includeQC, logfile)
       
     } else {
       

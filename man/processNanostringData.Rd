@@ -29,7 +29,7 @@ processNanostringData(
 \arguments{
 \item{nsFiles}{file path (or zip file) containing the .rcc files, or multiple
 directories in a character vector, or a single text/csv file containing the 
-combined counts.}
+combined counts, or .rcc files in a character vector.}
 
 \item{sampleTab}{.txt (tab-delimited) or .csv (comma-delimited) file 
 containing sample data table (optional, default NULL)}
