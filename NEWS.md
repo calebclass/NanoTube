@@ -1,3 +1,7 @@
+## Changes in NanoTube 1.7.2
+- runLimmaAnalysis now allows optional arguments, which are passed to
+  limma::lmFit.
+
 ## Changes in NanoTube 1.7.1
 - The codeclass.retain option now allows runLimmaAnalysis() to be run using
   a CodeClass/CodeClasses specified by the user, instead of automatically 

@@ -18,7 +18,8 @@
 #' Generally we're interested in endogenous genes, so we keep "endogenous" 
 #' only by default. Others can be included by entering a character vector for 
 #' this option (see limmaResults3 example). Alternatively, all targets can be 
-#' retained by setting this option to ".". 
+#' retained by setting this option to ".".
+#' @param ... Optional arguments to be passed to limma::lmFit 
 #' @return The fit Limma object
 #' 
 #' @examples 
@@ -56,7 +57,7 @@
 
 runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
                              design = NULL,
-                             codeclass.retain = "endogenous") {
+                             codeclass.retain = "endogenous", ...) {
   
     # Convert codeclass.retain option to format that can be used by grep.
     codeclass.grep <- paste(codeclass.retain, collapse = "|")
@@ -126,7 +127,7 @@ runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
         }
     }
     
-    fit <- limma::lmFit(dat.limma, design)
+    fit <- limma::lmFit(dat.limma, design=design, ...)
     limmaFit <- limma::eBayes(fit)
     limmaFit$q.value <- limmaFit$p.value
     for (i in seq_len(ncol(limmaFit$q.value))) limmaFit$q.value[,i] <- 

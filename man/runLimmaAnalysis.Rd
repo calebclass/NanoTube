@@ -9,7 +9,8 @@ runLimmaAnalysis(
   groups = NULL,
   base.group = NULL,
   design = NULL,
-  codeclass.retain = "endogenous"
+  codeclass.retain = "endogenous",
+  ...
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ Generally we're interested in endogenous genes, so we keep "endogenous"
 only by default. Others can be included by entering a character vector for 
 this option (see limmaResults3 example). Alternatively, all targets can be 
 retained by setting this option to ".".}
+
+\item{...}{Optional arguments to be passed to limma::lmFit}
 }
 \value{
 The fit Limma object
