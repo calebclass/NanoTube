@@ -1,3 +1,8 @@
+## Changes in NanoTube 1.9.1
+- Corrected a bug in positiveQC(), which caused it to calculate different 
+  positive scale factors from normalize_pos_control(); the second was confirmed
+  to be correct. 
+
 ## Changes in NanoTube 1.7.2
 - runLimmaAnalysis now allows optional arguments, which are passed to
   limma::lmFit.
