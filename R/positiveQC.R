@@ -57,6 +57,11 @@ positiveQC <- function(ns, samples = NULL, expected = NULL) {
     }
     
     if (is(ns, "list")) {
+        # For scale factors
+        dat.sf <- list(exprs = ns$exprs.raw,
+                       dict = ns$dict.raw)
+      
+        # For R-squared calculation
         dat.pos <-
             as.data.frame(log2(ns$exprs.raw[
                 ns$dict.raw$CodeClass == "Positive", ]))
@@ -75,6 +80,11 @@ positiveQC <- function(ns, samples = NULL, expected = NULL) {
                  normalization='none' or output.format='list' in 
                  `processNanostringData`.")
         }
+        # For scale factors
+        dat.sf <- list(exprs = exprs(ns),
+                       dict = fData(ns))
+      
+        # For R-squared calculation
         dat.pos <- as.data.frame(log2(exprs(ns)[
             fData(ns)$CodeClass == "Positive",]))
         
@@ -94,8 +104,7 @@ positiveQC <- function(ns, samples = NULL, expected = NULL) {
     }
     
     # Calculate positive scale factors
-    laneGM <- vapply(dat.pos, gm_mean, FUN.VALUE = 0)
-    scale.factor <- laneGM / mean(laneGM)
+    scale.factor <- normalize_pos_controls(dat = dat.sf)$pc.scalefactors
     
     # Calculate r-squared for each sample
     rsq <- vapply(dat.pos, function(vec) cor(vec, expected) ^ 2,
