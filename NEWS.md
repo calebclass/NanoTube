@@ -1,3 +1,7 @@
+## Changes in NanoTube 1.13.1
+- processNanostringData now reads RCC files recursively from the parent 
+  directory, so that it can handle RCC files within subfolders.
+
 ## Changes in NanoTube 1.9.1
 - Corrected a bug in positiveQC(), which caused it to calculate different 
   positive scale factors from normalize_pos_control(); the second was confirmed
