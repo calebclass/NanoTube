@@ -170,7 +170,8 @@ processNanostringData <- function(nsFiles,
         }
         
         # Get filenames (combines files from multiple directories if necessary)
-        fileNames <- unlist(lapply(nsFiles, list.files, full.names = TRUE))
+        fileNames <- unlist(lapply(nsFiles, list.files, recursive = TRUE, 
+                                   full.names = TRUE))
         
         # Retain only fileNames ending in "RCC" or ".gz"
         # ('tolower' function makes it case-insensitive)
