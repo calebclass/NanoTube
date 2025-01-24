@@ -4,7 +4,14 @@
 \alias{runLimmaAnalysis}
 \title{Conduct differential expression analysis}
 \usage{
-runLimmaAnalysis(dat, groups = NULL, base.group = NULL, design = NULL)
+runLimmaAnalysis(
+  dat,
+  groups = NULL,
+  base.group = NULL,
+  design = NULL,
+  codeclass.retain = "endogenous",
+  ...
+)
 }
 \arguments{
 \item{dat}{NanoString data ExpressionSet, from processNanostringData}
@@ -17,6 +24,14 @@ be one of the levels in 'groups'). Will use the first group if NULL.}
 
 \item{design}{a design matrix for Limma analysis (default NULL, will do 
 analysis based on provided 'group' data)}
+
+\item{codeclass.retain}{The CodeClasses to retain for Limma analysis. 
+Generally we're interested in endogenous genes, so we keep "endogenous" 
+only by default. Others can be included by entering a character vector for 
+this option (see limmaResults3 example). Alternatively, all targets can be 
+retained by setting this option to ".".}
+
+\item{...}{Optional arguments to be passed to limma::lmFit}
 }
 \value{
 The fit Limma object
@@ -53,4 +68,8 @@ design <- model.matrix(~group + batch)
 
 # Analyze data
 limmaResults2 <- runLimmaAnalysis(dat, design = design)
+
+# Run Limma analysis including endogenous *and* housekeeping genes.
+limmaResults3 <- runLimmaAnalysis(dat, design = design,
+                     codeclass.retain = c("endogenous", "housekeeping"))
 }

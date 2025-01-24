@@ -16,6 +16,8 @@ knitr::opts_chunk$set(tidy = FALSE,
                       dev = "png",
                       message = FALSE, error = FALSE, warning = TRUE,
                       fig.height = 4, fig.width = 4)
+
+library(kableExtra)
 ```
 
 
@@ -55,10 +57,11 @@ are provided in the "Processing Data" section. This function also merges the
 expression data with the sample characteristics table (if provided), and 
 outputs as an Biobase ExpressionSet.
 
-```{r Basic2, warning = FALSE}
+```{r Basic2}
 
 dat <- processNanostringData(nsFiles = example_data,
-                             sampleTab = sample_info, 
+                             sampleTab = sample_info,
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis")
 
 ```
@@ -92,9 +95,15 @@ for easier Viewing.
 limmaStats <- makeDiffExprFile(limmaResults, filename = NULL, returns = "stats")
 limmaStats <- as.data.frame(limmaStats)
 
+# Rounding for clarity
+limmaTab <- head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
+                      decreasing = FALSE), 1:4])
+limmaTab[,1] <- format(limmaTab[,1], digits = 2, nsmall = 1)
+limmaTab[,3] <- format(limmaTab[,3], digits = 1, scientific = TRUE)
+limmaTab[,4] <- format(limmaTab[,4], digits = 1, nsmall = 1)
+
 # Order by lowest to highest p-value for 'Autoimmune Retinopathy' vs. 'None'
-knitr::kable(head(limmaStats[order(limmaStats$`p-val (Autoimmune.retinopathy)`, 
-                      decreasing = FALSE), 1:4]), 
+knitr::kable(head(limmaTab), 
       row.names = TRUE, format = "html", align = "c")
 
 
@@ -129,10 +138,13 @@ names(fgseaResults)
 
 ```{r BasicTab}
 
-knitr::kable(head(fgseaResults$Autoimmune.retinopathy[
+fgseaTab <- head(fgseaResults$Autoimmune.retinopathy[
              order(fgseaResults$Autoimmune.retinopathy$pval, 
-                   decreasing = FALSE),]), 
-      row.names = TRUE, format = "html", align = "c")
+                   decreasing = FALSE),])
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
+
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 
 ```
@@ -147,17 +159,41 @@ by imported by NanoTube. Two functions are provided in this package:
 `read_rcc`, which reads in a single RCC file, and `read_merge_rcc` which reads
 in a vector of RCC file names and combines the data. 
 
-`processNanostringData` includes the reading of these data files, in addition 
-to optional quality control and normalization steps. These are described in the
-'Quality Control' and 'Normalization' sections. Normalization can be skipped
-in this function using `normalization = "none"`. The housekeeping normalization
-step can be skipped (retaining positive control normalization) using
-`skip.housekeeping = TRUE`.
+`processNanostringData` includes the reading of these data files contained in `nsFiles`, 
+merging with a sample meta-data table `sampleTab`, and other steps described below. 
+Ideally, your sampleTab will have a column which contains the names of each respective
+RCC file so the expression data and meta-data can be matched properly: this is 
+supplied to `processNanostringData` using the `idCol` option, which should be the 
+name of the column with the RCC filenames. If this is not provided, the function will
+merge your meta-data table in its original order with the RCC files in alphabetical order, and a
+warning will be returned advising you to check that the merge was completed correctly (see examples).
+
+`processNanostringData` also conducts optional quality control and normalization 
+steps. These are described in the 'Quality Control' and 'Normalization' sections. 
+Normalization can be skipped in this function using `normalization = "none"`. 
+The housekeeping normalization step can be skipped (retaining positive control 
+normalization) using `skip.housekeeping = TRUE`.
 
 ```{r proc1}
 
+# Without supplying idCol, a warning is returned.
+# The CSV file contains samples in the proper order, so this is technically ok.
 dat <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01,
+                             skip.housekeeping = FALSE,
+                             output.format = "ExpressionSet")
+
+```
+
+```{r proc1idCol}
+
+# With idCol
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
@@ -184,12 +220,15 @@ dat2 <- processNanostringData(nsFile = csv_data,
 
 ```
 ## Normalization
-This package provides three options for data normalization: a standard set of 
+This package provides four options for data normalization: a standard set of 
 steps recommended by NanoString for nCounter data, which normalizes the data to 
 different sets of control genes [@nanostring_technologies_ncounter_2011]; the 
-RUV (Remove Unwanted Variance) method [@gagnon-bartsch_ruv_2019]; or no 
-normalization.
+RUV-III (Remove Unwanted Variance III) method, which normalizes the data using 
+technical replicates [@gagnon-bartsch_ruv_2019]; the RUVg method, which 
+normalizes the data using specified control genes [@bhattacharya_approach_2020]; 
+or no normalization.
 
+### nSolver Normalization
 To normalize using standard nSolver steps, set `normalization` to "nSolver". 
 The three normalization steps under this method are:
 
@@ -230,10 +269,152 @@ hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
 
 dat <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "nSolver",
                              bgType = "t.test", bgPVal = 0.01,
                              housekeeping = hk.genes, skip.housekeeping = FALSE)
+
+```
+
+```{r norm2}
+
+# Automatically detect housekeeping genes
+
+dat <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver",
+                             bgType = "t.test", bgPVal = 0.01)
+
+```
+
+### RUV-III Normalization
+
+The RUV-III method normalizes data based on technical replicates. Replicate IDs
+must be included in the sample information table ('sampleTab' in `processNanostringData`),
+and the column containing these IDs is specified using the 'replicateCol' option.
+Additionally, the number of dimensions of unwanted data can be specified using
+the 'n.unwanted' option.  If NULL (the default), the maximum possible number of
+factors will be identified and used.  More information can be found in 
+[@gagnon-bartsch_ruv_2019]. 
+
+Note that RUVIII returns log-transformed counts, in contrast to nSolver and
+RUVg normalization. This difference is accounted for in subsequent NanoTube 
+analysis steps, but it should be considered by the user when using the 
+normalized data for other purposes.
+
+```{r normRUVIII}
+
+# This sample data table contains fake replicate identifiers (for use in example).
+sample_info_reps <- system.file("extdata", 
+                           "GSE117751_sample_data_replicates.csv", 
+                           package = "NanoTube")
+
+datRUVIII <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info_reps, 
+                             idCol = "RCC_Name",
+                             replicateCol = "Replicate_ID",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVIII",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1)
+
+```
+
+RUV-III can also be used without technical replicates, by generating PRPS 
+(pseudo-replicates of pseudo-samples). This is described in [@molania_removing_2022],
+and it was demonstrated to provide superior normalization vs. other RNA-Seq
+normalization methods for TCGA RNA-Seq data sets. Software and vignettes for 
+accomplishing this normalization can be found at 
+<https://github.com/RMolania/TCGA_PanCancer_UnwantedVariation>.
+
+### RUVg Normalization
+
+The RUVg method normalizes data based on housekeeping genes. These can be manually
+specified using the 'housekeeping' option in `processNanostringData`, or they can
+be automatically interpreted based on the CodeClass column of the RCC files. By
+default, RUVg will remove one dimension of unwanted data, but this can be adjusted
+using the 'n.unwanted' option. Additionally, the 'RUVg.drop' option can be used
+to drop some number of singular values. This defaults to zero, but it can be adjusted
+if the first singular value(s) identify the effect of interest. See 
+[@bhattacharya_approach_2020] for more details.
+
+```{r normRUVg}
+
+hk.genes <- c("TUBB", "TBP", "POLR2A", "GUSB", "SDHA")
+
+datRUVg <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVg",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1, RUVg.drop = 0,
+                             housekeeping = hk.genes)
+
+```
+
+```{r normRUVg2}
+
+# Housekeeping genes are automatically identified
+datRUVg <- processNanostringData(nsFiles = example_data,
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "RUVg",
+                             bgType = "t.test", bgPVal = 0.01,
+                             n.unwanted = 1, RUVg.drop = 0)
+
+```
+
+
+## Assessing Normalization Performance
+### RLE Plots
+Relative Log Expression (RLE) plots have been demonstrated as effective visualizations to assess whether NanoString data normalization has been successful [@gandolfo_rle_2018]. This method centers the log-expression of each gene to the median log-expression of that gene. The RUV implementation `ruv_rle` can be used to generate this plot, regardless of what normalization method was used [@gagnon-bartsch_ruv_2019].  
+
+Note that for this function, you need to log-transform and transpose the 
+expression data matrix.  You'll probably want to set the y-axis limits as well,
+using 'ylim'.
+
+```{r rle, fig.width = 6}
+
+# Here's how to do it with the NanoString ExpressionSet. If your data set is in
+# list form, you would use dat$exprs instead of exprs(dat).
+
+ruv::ruv_rle(t(log2(exprs(dat))), ylim = c(-2, 2))
+
+```
+
+
+### Principal components analysis
+
+PCA can be conducted after processing and normalization. We provide a standard
+plot using `ggplot2` or an interactive plot using `plotly` (use the 
+`interactive.plot` option).
+
+```{r pca, fig.width = 6}
+
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01)
+
+library(plotly) 
+nanostringPCA(dat, interactive.plot = TRUE)$plt
+
+```
+
+We default to plotting the first two principal components, but you can also
+choose others.
+
+```{r pca2, fig.width = 6}
+
+nanostringPCA(dat, pc1=3, pc2=4, interactive.plot = FALSE)$plt
 
 ```
 
@@ -242,9 +423,11 @@ NanoTube provides the quality control metrics recommended for NanoString
 nCounter data. The raw NanoString data can be loaded for QC using the 
 `output.format = "list"` option of `processNanostringData`.
 
-```{r qc1, warning = FALSE}
+```{r qc1}
 
-dat <- processNanostringData(example_data, output.format = "list",
+dat <- processNanostringData(example_data, 
+                             idCol = "RCC_Name",
+                             output.format = "list",
                              includeQC = TRUE)
 
 ```
@@ -269,7 +452,7 @@ these recommendations should be investigated further.
 posQC <- positiveQC(dat)
 
 knitr::kable(head(posQC$tab), 
-      row.names = FALSE, format = "html", align = "c", digits = 3)
+      row.names = FALSE, format = "html", align = "c", digits = 2)
 
 ```
 
@@ -312,39 +495,10 @@ processed data. Manufacturer recommends additional caution for samples with
 scale factors outside the range of 0.1-10.
 
 ```{r qcHK1}
-head(dat$hk.scalefactors)
+signif(head(dat$hk.scalefactors), digits = 2)
 ```
 
 # Data Analysis
-## Principal components analysis
-
-PCA can be conducted after processing and normalization. We provide a standard
-plot using `ggplot2` or an interactive plot using `plotly` (use the 
-`interactive.plot` option).
-
-```{r pca, warning = FALSE, fig.width = 6}
-
-dat <- processNanostringData(example_data, 
-                             sampleTab = sample_info, 
-                             groupCol = "Sample_Diagnosis",
-                             normalization = "nSolver", 
-                             bgType = "t.test", 
-                             bgPVal = 0.01)
-
-library(plotly) 
-nanostringPCA(dat, interactive.plot = TRUE)$plt
-
-```
-
-We default to plotting the first two principal components, but you can also
-choose others.
-
-```{r pca2, warning = FALSE, fig.width = 6}
-
-nanostringPCA(dat, pc1=3, pc2=4, interactive.plot = FALSE)$plt
-
-```
-
 ## Differential expression analysis
 ### Using Limma
 
@@ -358,6 +512,14 @@ Assuming this information was provided in the `processNanostringData` step, your
 ExpressionSet will already contain the sample groups.
 
 ```{r gps}
+
+dat <- processNanostringData(example_data, 
+                             sampleTab = sample_info, 
+                             idCol = "RCC_Name",
+                             groupCol = "Sample_Diagnosis",
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01)
 
 table(dat$groups)
 
@@ -374,12 +536,12 @@ pigmentosa vs. None.  This function will return standard Limma analysis results.
 
 limmaResults <- runLimmaAnalysis(dat, base.group = "None")
 
-head(limmaResults$coefficients)
+head(signif(limmaResults$coefficients, digits = 2))
 
 ```
 
 You can also directly define a design matrix, instead. For example, if this data
-were collected in two batches, you could include a batch term in the analysis.
+were collected in two batches, you could include a batch term in the analysis. 
 
 ```{r deLimma2, fig.height = 3.5}
 
@@ -400,6 +562,43 @@ limmaResults2 <- runLimmaAnalysis(dat, design = design)
 # We can see there is no batch effect in this data, due to the somewhat uniform
 # distribution of p-values. This is good, since the batches are fake.
 hist(limmaResults2$p.value[,"batch"], main = "p-values of Batch terms")
+
+```
+
+Alternatively, a design matrix can be provided as 'sampleData' in the 
+`processNanostringData` step. This one contains columns for the Intercept,
+the two diagnoses, and patient Age.
+
+```{r desInput}
+
+sample_info_design <- system.file("extdata", 
+                           "GSE117751_design_matrix.csv", 
+                           package = "NanoTube")
+
+datDes <- processNanostringData(example_data, 
+                             sampleTab = sample_info_design, 
+                             idCol = "RCC_Name",
+                             normalization = "nSolver", 
+                             bgType = "t.test", 
+                             bgPVal = 0.01)
+
+head(pData(datDes))
+
+```
+
+We can then use this pData object as our design matrix in limma analysis. Note that 
+`processNanostringData` adds an additional column at the beginning and the end,
+so these should be removed for limma analysis. Based on this analysis, many
+genes appear to be correlated with patient age.
+
+```{r limma3}
+
+# Analyze data
+limmaResults3 <- runLimmaAnalysis(datDes, 
+                                  design = pData(datDes)[,2:(ncol(pData(datDes))-1)])
+
+
+hist(limmaResults3$p.value[,"Age"], main = "p-values for Age term")
 
 ```
 
@@ -453,6 +652,7 @@ unnormalized, data to a `NanoStringSet` for use with NanoStringDiff.
 # Remember to set normalization = "none"
 datNoNorm <- processNanostringData(nsFiles = example_data,
                              sampleTab = sample_info, 
+                             idCol = "RCC_Name",
                              groupCol = "Sample_Diagnosis",
                              normalization = "none")
 
@@ -528,11 +728,13 @@ potential pathway of interest.
 
 ```{r gsea2}
 
-fgsea.ordered <- fgseaResults$Autoimmune.retinopathy[
-    order(fgseaResults$Autoimmune.retinopathy$pval, decreasing = FALSE),]
+fgseaTab <- head(fgseaResults$Autoimmune.retinopathy[
+             order(fgseaResults$Autoimmune.retinopathy$pval, 
+                   decreasing = FALSE),])
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
 
-knitr::kable(fgsea.ordered[1:5,], 
-      row.names = TRUE, format = "html", align = "c")
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 
 ```
@@ -588,7 +790,11 @@ pheatmap::pheatmap(t(leading.edge$Autoimmune.retinopathy),
 
 You can further cluster pathways by their leading edge genes. This is 
 particularly useful when you have lots (tens to hundreds) of significantly 
-enriched pathways, as you can prioritize certain ones.
+enriched pathways, as you can prioritize certain ones or potentially identify
+overarching patterns of pathway enrichment. We recommend clustering pathways by
+the binary distance (also known as the Jaccard index), which for two gene sets
+will be the number of genes shared by the gene sets, divided by the total number
+of genes in either of the two gene sets.
 
 ```{r gsea6}
 
@@ -598,8 +804,11 @@ fgsea.grouped <- groupFGSEA(fgseaResults$Autoimmune.retinopathy,
                                    join.threshold = 0.5,
                                    dist.method = "binary")
 
+fgseaTab <- head(fgsea.grouped)
+fgseaTab[,2:6] <- lapply(fgseaTab[,2:6], format, digits = 1, nsmall = 1)
 
-knitr::kable(fgsea.grouped, digits = 4, row.names = FALSE, align = "c")
+knitr::kable(fgseaTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 ```
 
@@ -637,13 +846,17 @@ for one comparison.
 
 ```{r exportGSEA2}
 
-results.AR <- groupedGSEAtoStackedReport(
+results.AR <- groupedGSEAtoStackedReport( 
     fgsea.grouped,
     leadingEdge = leading.edge$Autoimmune.retinopathy,
     de.fit = limmaResults)
 
 # View Cluster 1 gene statistics
-results.AR[results.AR$Cluster == 1, 1:6]
+resultsTab <- results.AR[results.AR$Cluster == 1, 1:6]
+resultsTab[,2:6] <- lapply(resultsTab[,2:6], format, digits = 1, nsmall = 1)
+
+knitr::kable(resultsTab, 
+      row.names = FALSE, format = "html", align = "c")
 
 ```
 

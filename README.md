@@ -10,3 +10,7 @@ are included to enable interoperability with other Bioconductor NanoString
 data analysis packages.
 
 Many more details can be found in the vignette (vignettes/NanoTube.Rmd).
+
+If you use the NanoTube in your work, please cite:
+Class CA, Lukan CJ, Bristow CA, Do KA. "Easy NanoString nCounter data analysis
+with the NanoTube." Bioinformatics 2023; 39(1): btac762. https://doi.org/10.1093/bioinformatics/btac762

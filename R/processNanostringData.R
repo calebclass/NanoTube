@@ -9,27 +9,27 @@
 #'
 #' @param nsFiles file path (or zip file) containing the .rcc files, or multiple
 #' directories in a character vector, or a single text/csv file containing the 
-#' combined counts.
+#' combined counts, or .rcc files in a character vector.
 #' @param sampleTab .txt (tab-delimited) or .csv (comma-delimited) file 
 #' containing sample data table (optional, default NULL)
 #' @param idCol the column name of the sample identifiers in the sample table,
 #' which should correspond to the column names in the count table 
 #' (default NULL: will assume the first column contains the sample identifiers)
-#' @param groupCol the column name of the group identifiers in the sample table
-#' (required if sampleTab is provided).
+#' @param groupCol the column name of the group identifiers in the sample table.
 #' @param replicateCol the column name of the technical replicate identifiers 
 #' (default NULL). Multiple replicates of the same sample will have the same 
 #' value in this column. Replicates are used to improve normalization 
-#' performance in the "RUV" method; otherwise they are averaged.
+#' performance in the "RUVIII" method; otherwise they are averaged.
 #' @param normalization If "nSolver" (default), continues with background, 
 #' positive control, and housekeeping control normalization steps to return
-#' a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
-#' controls, housekeeping genes and technical replicates. If "none", returns a 
+#' a NanoStringSet of normalized data. If "RUVIII", runs RUV normalization using 
+#' controls, housekeeping genes and technical replicates. If "RUVg", runs RUV 
+#' normalization using housekeeping genes. If "none", returns a 
 #' NanoStringSet with the raw counts, suitable for running NanoStringDiff.
-#' @param bgType Only if (normalization=="nSolver"): Type of background 
+#' @param bgType (Only if normalization is not "none") Type of background 
 #' correction to use: "threshold" sets a threshold for N standard deviations 
 #' above the mean of negative controls. "t.test" conducts a one-sided t test 
-#' for each gene against all negative controls.
+#' for each gene against all negative controls. "none" to skip background removal
 #' @param bgThreshold If bgType=="threshold", number of sd's above the mean to 
 #' set as threshold for background correction.
 #' @param bgProportion If bgType=="threshold", proportion of samples that a gene
@@ -40,9 +40,14 @@
 #' reported expressions? If TRUE, will subtract mean+numSD*sd of the negative 
 #' controls from the endogenous genes, and then set negative values to zero 
 #' (default FALSE)
+#' @param n.unwanted The number of unwanted factors to use (for RUVIII or RUVg
+#' normalization only). If NULL (default), the maximum possible value will
+#' be identified and used. 
+#' @param RUVg.drop The number of singular values to drop for RUVg normalization
+#' (see RUVSeq::RUVg)
 #' @param housekeeping vector of genes (symbols or accession) to use for 
-#' housekeeping correction. If NULL, will use genes listed as "Housekeeping" 
-#' under CodeClass.
+#' housekeeping correction ("nCounter" or "RUVg" normalization). 
+#' If NULL, will use genes listed as "Housekeeping" under CodeClass.
 #' @param skip.housekeeping Skip housekeeping normalization? (default FALSE)
 #' @param includeQC Should we include the QC from the .rcc files? This can 
 #' cause errors, particularly when reading in files from multiple experiments.
@@ -53,7 +58,8 @@
 #' @param output.format If "list", will return the normalized (optional) and raw
 #' expression data, as well as various QC and relevant information tables. If 
 #' "ExpressionSet" (default), will convert to an n*p ExpressionSet, with n rows
-#' representing genes and p columns representing samples.
+#' representing genes and p columns representing samples. ExpressionSet objects
+#' are required for some steps, such as runLimmaAnalysis.
 #' @param logfile a filename for the logfile (optional). If blank, will print 
 #' warnings to screen.
 #'
@@ -107,10 +113,11 @@ processNanostringData <- function(nsFiles,
                                   sampleTab = NULL, 
                                   idCol = NULL, groupCol = NULL, 
                                   replicateCol = NULL,
-                                  normalization = c("nSolver", "RUV", "none"),
-                                  bgType = c("threshold", "t.test"),
+                                  normalization = c("nSolver", "RUVIII", "RUVg", "none"),
+                                  bgType = c("threshold", "t.test", "none"),
                                   bgThreshold = 2, bgProportion = 0.5, 
                                   bgPVal = 0.001, bgSubtract = FALSE,
+                                  n.unwanted = NULL, RUVg.drop = 0,
                                   housekeeping = NULL, 
                                   skip.housekeeping = FALSE,
                                   includeQC = FALSE,
@@ -160,6 +167,13 @@ processNanostringData <- function(nsFiles,
         # Remove periods or spaces from dictionary colnames
         colnames(dat$dict) <- gsub("\\.| ", "", colnames(dat$dict))
       
+    } else if (file.extension %in% c(".RCC", ".rcc")) {
+      
+        fileNames <- nsFiles[ grep("\\.rcc$", tolower(nsFiles)) ]
+        cat("\nReading in .RCC files......", file = logfile, 
+            append = TRUE)
+        dat <- read_merge_rcc(fileNames, includeQC, logfile)
+      
     } else {
       
         # Extract from nsFiles, if zipped
@@ -206,13 +220,13 @@ processNanostringData <- function(nsFiles,
     output.format <- output.format[1]
     
     if ((!is.null(sampIds) & any(duplicated(sampIds))) |
-        normalization != "RUV") {
+        normalization != "RUVIII") {
       if (is.null(sampIds)) sampIds <- seq_len(ncol(dat$exprs))
         
         dupSamps <- names(table(sampIds)[table(sampIds) > 1])
         
-        if (normalization == "RUV") {
-            cat("\nConducting RUV normalization......",
+        if (normalization == "RUVIII") {
+            cat("\nConducting RUVIII normalization......",
                 file=logfile, append=TRUE)
             
             # Save a copy of the raw expression data
@@ -220,11 +234,18 @@ processNanostringData <- function(nsFiles,
             dat$samples.raw <- dat$samples
             dat$dict.raw <- dat$dict
             
+            if (bgType != "none") {
+              dat <- remove_background(dat, mode = bgType, 
+                                            numSD = bgThreshold, 
+                                            proportionReq = bgProportion,
+                                            pval = bgPVal, subtract = bgSubtract)
+            }
+            
             # Normalize using RUV: Use all genes as control genes to start 
             # (recommended by RUV authors)
             dat$exprs <- t(ruv::RUVIII(t(log2(dat$exprs+0.5)), M = sampIds,
                                        ctl = seq_len(nrow(dat$exprs)), 
-                                       k = NULL))
+                                       k = n.unwanted))
           
         } else {
             cat("\nAveraging technical replicates.....",
@@ -252,10 +273,12 @@ processNanostringData <- function(nsFiles,
         cat("\nChecking endogenous genes against background threshold......",
             file=logfile, append=TRUE)
     
-        dat.norm <- remove_background(dat.norm, mode = bgType, 
+        if (bgType != "none") {
+          dat.norm <- remove_background(dat.norm, mode = bgType, 
                                       numSD = bgThreshold, 
                                       proportionReq = bgProportion,
                                       pval = bgPVal, subtract = bgSubtract)
+        }
         
         if (!skip.housekeeping) {
             cat("\nConducting housekeeping normalization......",
@@ -268,6 +291,41 @@ processNanostringData <- function(nsFiles,
         dat.out$exprs.raw <- dat$exprs
         dat.out$dict.raw <- dat$dict
         dat <- dat.out
+        
+    } else if (normalization == "RUVg") {
+      
+      cat("\nConducting RUVg normalization......",
+          file=logfile, append=TRUE)
+      
+      dat$exprs.raw <- dat$exprs
+      dat$dict.raw <- dat$dict
+      
+      if (bgType != "none") {
+        dat <- remove_background(dat, mode = bgType, 
+                                      numSD = bgThreshold, 
+                                      proportionReq = bgProportion,
+                                      pval = bgPVal, subtract = bgSubtract)
+      }
+      
+      if (is.null(housekeeping)) {
+        housekeeping <- rownames(dat$dict)[
+          grep("housekeeping", dat$dict$CodeClass, ignore.case = TRUE)]
+      } else if (all(housekeeping %in% dat$dict$Accession)) {
+        housekeeping <- rownames(dat$dict)[dat$dict$Accession %in% housekeeping]
+      } else if (all(housekeeping %in% dat$dict$Name)) {
+        housekeeping <- rownames(dat$dict)[dat$dict$Name %in% housekeeping]
+      } else {
+        stop(cat("\nHousekeeping gene(s) not found in dataset:", 
+                 housekeeping[!(housekeeping %in% dat$dict$Name | 
+                                  housekeeping %in% dat$dict$Accession)],
+                 "\n", file=logfile, append=TRUE))
+      }
+
+      if (is.null(n.unwanted)) n.unwanted <- 1
+    
+      dat$exprs <- RUVSeq::RUVg(dat$exprs, housekeeping, 
+                                k = n.unwanted, drop = RUVg.drop)$normalizedCounts
+      
     }
     
     if (output.format == "list") {

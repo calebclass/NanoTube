@@ -1,4 +1,4 @@
-#' NanoTube.
+#' NanoTube
 #' 
 #' A package for NanoString nCounter gene expression data processing,
 #' analysis, and visualization.
@@ -8,7 +8,7 @@
 #' @import Biobase ggplot2 fgsea limma reshape
 #' @importFrom stats cor cutree dist hclust median model.matrix p.adjust 
 #'             prcomp sd t.test
-#' @importFrom utils read.csv read.delim unzip write.table
+#' @importFrom utils read.csv read.delim unzip untar write.table
 #' @importFrom methods is
 NULL
 

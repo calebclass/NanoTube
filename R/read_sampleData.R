@@ -81,12 +81,15 @@ read_sampleData <- function(dat, file.name,
     }
     
     # Check that group column and replicates column are present in the table.
-    if (groupCol %in% colnames(dat$samples)) {
+    if (!is.null(groupCol)) {
+      if (groupCol %in% colnames(dat$samples)) {
         dat$groups <- dat$samples[,groupCol]
-    } else {
+      } else {
         stop("\n'", groupCol, "' is not one of the column names in the
              sample table.\n")
+      }
     }
+    
     
     if (!is.null(replicateCol)) {
         if (replicateCol %in% colnames(dat$samples)) {

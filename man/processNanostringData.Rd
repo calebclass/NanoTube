@@ -10,12 +10,14 @@ processNanostringData(
   idCol = NULL,
   groupCol = NULL,
   replicateCol = NULL,
-  normalization = c("nSolver", "RUV", "none"),
-  bgType = c("threshold", "t.test"),
+  normalization = c("nSolver", "RUVIII", "RUVg", "none"),
+  bgType = c("threshold", "t.test", "none"),
   bgThreshold = 2,
   bgProportion = 0.5,
   bgPVal = 0.001,
   bgSubtract = FALSE,
+  n.unwanted = NULL,
+  RUVg.drop = 0,
   housekeeping = NULL,
   skip.housekeeping = FALSE,
   includeQC = FALSE,
@@ -27,7 +29,7 @@ processNanostringData(
 \arguments{
 \item{nsFiles}{file path (or zip file) containing the .rcc files, or multiple
 directories in a character vector, or a single text/csv file containing the 
-combined counts.}
+combined counts, or .rcc files in a character vector.}
 
 \item{sampleTab}{.txt (tab-delimited) or .csv (comma-delimited) file 
 containing sample data table (optional, default NULL)}
@@ -36,24 +38,24 @@ containing sample data table (optional, default NULL)}
 which should correspond to the column names in the count table 
 (default NULL: will assume the first column contains the sample identifiers)}
 
-\item{groupCol}{the column name of the group identifiers in the sample table
-(required if sampleTab is provided).}
+\item{groupCol}{the column name of the group identifiers in the sample table.}
 
 \item{replicateCol}{the column name of the technical replicate identifiers 
 (default NULL). Multiple replicates of the same sample will have the same 
 value in this column. Replicates are used to improve normalization 
-performance in the "RUV" method; otherwise they are averaged.}
+performance in the "RUVIII" method; otherwise they are averaged.}
 
 \item{normalization}{If "nSolver" (default), continues with background, 
 positive control, and housekeeping control normalization steps to return
-a NanoStringSet of normalized data. If "RUV", runs RUV normalization using 
-controls, housekeeping genes and technical replicates. If "none", returns a 
+a NanoStringSet of normalized data. If "RUVIII", runs RUV normalization using 
+controls, housekeeping genes and technical replicates. If "RUVg", runs RUV 
+normalization using housekeeping genes. If "none", returns a 
 NanoStringSet with the raw counts, suitable for running NanoStringDiff.}
 
-\item{bgType}{Only if (normalization=="nSolver"): Type of background 
+\item{bgType}{(Only if normalization is not "none") Type of background 
 correction to use: "threshold" sets a threshold for N standard deviations 
 above the mean of negative controls. "t.test" conducts a one-sided t test 
-for each gene against all negative controls.}
+for each gene against all negative controls. "none" to skip background removal}
 
 \item{bgThreshold}{If bgType=="threshold", number of sd's above the mean to 
 set as threshold for background correction.}
@@ -69,9 +71,16 @@ reported expressions? If TRUE, will subtract mean+numSD*sd of the negative
 controls from the endogenous genes, and then set negative values to zero 
 (default FALSE)}
 
+\item{n.unwanted}{The number of unwanted factors to use (for RUVIII or RUVg
+normalization only). If NULL (default), the maximum possible value will
+be identified and used.}
+
+\item{RUVg.drop}{The number of singular values to drop for RUVg normalization
+(see RUVSeq::RUVg)}
+
 \item{housekeeping}{vector of genes (symbols or accession) to use for 
-housekeeping correction. If NULL, will use genes listed as "Housekeeping" 
-under CodeClass.}
+housekeeping correction ("nCounter" or "RUVg" normalization). 
+If NULL, will use genes listed as "Housekeeping" under CodeClass.}
 
 \item{skip.housekeeping}{Skip housekeeping normalization? (default FALSE)}
 
@@ -86,7 +95,8 @@ provided.}
 \item{output.format}{If "list", will return the normalized (optional) and raw
 expression data, as well as various QC and relevant information tables. If 
 "ExpressionSet" (default), will convert to an n*p ExpressionSet, with n rows
-representing genes and p columns representing samples.}
+representing genes and p columns representing samples. ExpressionSet objects
+are required for some steps, such as runLimmaAnalysis.}
 
 \item{logfile}{a filename for the logfile (optional). If blank, will print 
 warnings to screen.}

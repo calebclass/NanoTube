@@ -35,13 +35,20 @@
 makeDiffExprFile <- function(limmaResults, filename = NULL,
                              returns = c("all", "stats"),
                              skip.first = TRUE) {
-  
-    dat.scaled <- exprs(limmaResults$eset) -
-      apply(exprs(limmaResults$eset)[,limmaResults$eset$group == 
-                                       levels(limmaResults$eset$group)[1]], 
-            1, median)
-  
-    dat.scaled <- dat.scaled[,order(limmaResults$eset$group)]
+    
+    # If groups are not provided, center by overall median.
+    if(is.null(limmaResults$eset$group)) {
+      dat.scaled <- exprs(limmaResults$eset) -
+        apply(exprs(limmaResults$eset), 1, median)
+    }
+    else {  # If groups are provided, center by base group.
+      dat.scaled <- exprs(limmaResults$eset) -
+        apply(exprs(limmaResults$eset)[,limmaResults$eset$group == 
+                                         levels(limmaResults$eset$group)[1]], 
+              1, median)
+      dat.scaled <- dat.scaled[,order(limmaResults$eset$group)]
+    }
+    
   
     limma.dat <- list()
   

@@ -1,7 +1,8 @@
 bibentry(bibtype = "Article",
-	title = "Easy NanoString Gene Expression Analysis with the NanoTube",
+	title = "Easy NanoString nCounter data analysis with the NanoTube",
 	author = c(person(c("Caleb", "A."), "Class"),
+	  person(c("Caiden", "J."), "Lukan"),
 		person(c("Christopher", "A."), "Bristow"),
 		person("Kim-Anh", "Do")),
-	year = "2022", journal = "The FASEB Journal", volume = "36", number = "S1",
-	doi = "https://doi.org/10.1096/fasebj.2022.36.S1.0R291")
+	year = "2023", journal = "Bioinformatics", volume = "39", number = "1",
+	doi = "https://doi.org/10.1093/bioinformatics/btac762")

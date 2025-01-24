@@ -3,7 +3,7 @@
 \docType{package}
 \name{NanoTube}
 \alias{NanoTube}
-\title{NanoTube.}
+\title{NanoTube}
 \description{
 A package for NanoString nCounter gene expression data processing,
 analysis, and visualization.

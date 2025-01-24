@@ -14,6 +14,12 @@
 #' be one of the levels in 'groups'). Will use the first group if NULL.
 #' @param design a design matrix for Limma analysis (default NULL, will do 
 #' analysis based on provided 'group' data)
+#' @param codeclass.retain The CodeClasses to retain for Limma analysis. 
+#' Generally we're interested in endogenous genes, so we keep "endogenous" 
+#' only by default. Others can be included by entering a character vector for 
+#' this option (see limmaResults3 example). Alternatively, all targets can be 
+#' retained by setting this option to ".".
+#' @param ... Optional arguments to be passed to limma::lmFit 
 #' @return The fit Limma object
 #' 
 #' @examples 
@@ -42,19 +48,29 @@
 #' 
 #' # Analyze data
 #' limmaResults2 <- runLimmaAnalysis(dat, design = design)
+#' 
+#' # Run Limma analysis including endogenous *and* housekeeping genes.
+#' limmaResults3 <- runLimmaAnalysis(dat, design = design,
+#'                      codeclass.retain = c("endogenous", "housekeeping"))
 
 
 
 runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
-                             design = NULL) {
-
-    dat.limma <- dat[grep("endogenous", fData(dat)$CodeClass, ignore.case = TRUE),]
-    rownames(dat.limma) <- fData(dat)$Name[grep("endogenous", 
+                             design = NULL,
+                             codeclass.retain = "endogenous", ...) {
+  
+    # Convert codeclass.retain option to format that can be used by grep.
+    codeclass.grep <- paste(codeclass.retain, collapse = "|")
+    
+    # Retain only desired CodeClass/CodeClasses.
+    dat.limma <- dat[grep(codeclass.grep, fData(dat)$CodeClass, 
+                          ignore.case = TRUE),]
+    rownames(dat.limma) <- fData(dat)$Name[grep(codeclass.grep, 
                                                 fData(dat)$CodeClass, 
                                                 ignore.case = TRUE)]
     
     # If RUV normalization was used, data are already log-transformed.
-    if (dat$normalization[1] != "RUV") exprs(dat.limma) <- 
+    if (dat$normalization[1] != "RUVIII") exprs(dat.limma) <- 
         log2(exprs(dat.limma) + 0.5)
   
     
@@ -111,7 +127,7 @@ runLimmaAnalysis <- function(dat, groups = NULL, base.group = NULL,
         }
     }
     
-    fit <- limma::lmFit(dat.limma, design)
+    fit <- limma::lmFit(dat.limma, design=design, ...)
     limmaFit <- limma::eBayes(fit)
     limmaFit$q.value <- limmaFit$p.value
     for (i in seq_len(ncol(limmaFit$q.value))) limmaFit$q.value[,i] <- 
