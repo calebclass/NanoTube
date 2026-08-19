@@ -322,6 +322,10 @@ processNanostringData <- function(nsFiles,
       }
 
       if (is.null(n.unwanted)) n.unwanted <- 1
+      
+      if (any(dat$exprs != round(dat$exprs))) {
+        dat$exprs <- round(dat$exprs)
+      }
     
       dat$exprs <- RUVSeq::RUVg(dat$exprs, housekeeping, 
                                 k = n.unwanted, drop = RUVg.drop)$normalizedCounts
