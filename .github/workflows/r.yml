@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
              options(repos = c(CRAN = "https://cran.r-project.org"))
-             install.packages(c("remotes", "rcmdcheck"))
+             install.packages(c("remotes", "rcmdcheck", "BiocManager"))
              BiocManager::install("GenomeInfoDbData", type = "source")
              remotes::install_deps(dependencies = TRUE, type = "binary")
         shell: Rscript {0}
