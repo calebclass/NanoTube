@@ -1,8 +1,8 @@
 Package: NanoTube
 Type: Package
 Title: An Easy Pipeline for NanoString nCounter Data Analysis
-Version: 1.13.1
-Date: 2023-05-31
+Version: 1.19.1
+Date: 2026-08-28
 Authors@R: c(person("Caleb", "Class", email="cclass@butler.edu",
                   role = c("cre", "aut"), 
                   comment = c(ORCID = "0000-0003-3130-3613")),
@@ -10,7 +10,7 @@ Authors@R: c(person("Caleb", "Class", email="cclass@butler.edu",
 Depends: R (>= 4.1), Biobase, ggplot2, limma
 Imports: fgsea, methods, reshape, stats, utils
 Suggests: grid, kableExtra, knitr, NanoStringDiff, pheatmap, plotly, rlang, 
-    rmarkdown, ruv, RUVSeq, shiny, testthat, xlsx
+    rmarkdown, ruv, RUVSeq, shiny, testthat, xlsx, GenomeInfoDbData
 VignetteBuilder: knitr
 Description: NanoTube includes functions for the processing, quality control, 
     analysis, and visualization of NanoString nCounter data. Analysis functions
